@@ -1,0 +1,11 @@
+{
+  "name": "gearvn-lite-fake",
+  "version": "1.0.0",
+  "description": "Final project for WAD courses, 22CLC03",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Lac Long Thuy Nhan",
+  "license": "ISC"
+}
