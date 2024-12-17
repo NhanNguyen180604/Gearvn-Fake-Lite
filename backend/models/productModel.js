@@ -13,12 +13,30 @@ const productSchema = new mongoose.Schema({
     category: {
         type: mongoose.Schema.Types.ObjectId,
         required: true,
+        ref: 'Category',
+    },
+    brand: {
+        type: mongoose.Schema.Types.ObjectId,
+        required: true,
+        ref: 'Brand',
     },
     images: [
         {
-            type: String,
+            url: {
+                type: String,
+                required: true,
+            },
+            // Cloudinary publicID to delete if needed
+            publicID: {
+                type: String,
+                required: true,
+            }
         }
-    ]
+    ],
+    description: {
+        type: String,
+        required: true,
+    },
 });
 
 module.exports = mongoose.model('Product', productSchema);

@@ -86,6 +86,10 @@ const deleteCategory = asyncHandler(async (req, res) => {
         return res.status(404).json({ message: "Category not found" });
     }
 
+    // TODO delete all products of this category
+    
+    // TODO delete all products of this category
+    
     res.status(200).json(category);
 });
 

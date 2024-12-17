@@ -1,30 +1,31 @@
 const mongoose = require('mongoose');
 
-const orderSchema = new mongoose.Schema({
-    products: [
-        {
-            productID: {
-                type: mongoose.Schema.Types.ObjectId,
-                ref: 'Product',
-                required: true,
-            },
-            quantity: {
-                type: Number,
-                required: true,
-                min: 1,
+const orderSchema = new mongoose.Schema(
+    {
+        products: [
+            {
+                productID: {
+                    type: mongoose.Schema.Types.ObjectId,
+                    ref: 'Product',
+                    required: true,
+                },
+                quantity: {
+                    type: Number,
+                    required: true,
+                    min: 1,
+                }
             }
-        }
-    ],
-    totalPrice: {
-        type: Number,
-        default: 0,
+        ],
+        totalPrice: {
+            type: Number,
+            default: 0,
+        },
+        // how to user if third party?
     },
-    createdAt: {
-        type: Date,
-        required: true,
+    {
+        timestamps: true
     }
-    // how to user if third party?
-});
+);
 
 orderSchema.pre('save', async function (next) {
     const Product = require('./productModel');
