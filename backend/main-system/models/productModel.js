@@ -38,6 +38,13 @@ const productSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
+    stock: {
+        type: Number,
+        required: true,
+        min: 0,
+    }
 });
+
+productSchema.index({ name: 'text' });
 
 module.exports = mongoose.model('Product', productSchema);

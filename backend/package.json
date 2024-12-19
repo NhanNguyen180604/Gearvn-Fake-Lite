@@ -4,12 +4,14 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "server": "nodemon server.js"
+    "server": "nodemon ./main-system/server.js",
+    "sub-system": "nodemon ./sub-system/app.js"
   },
   "author": "Lac Long Thuy Nhan",
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "axios": "^1.7.9",
     "cloudinary": "^2.5.1",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",

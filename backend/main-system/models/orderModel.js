@@ -2,12 +2,26 @@ const mongoose = require('mongoose');
 
 const orderSchema = new mongoose.Schema(
     {
+        // how to user if third party?
+        user: {
+            type: mongoose.Schema.Types.ObjectId,
+        },
         products: [
             {
                 productID: {
                     type: mongoose.Schema.Types.ObjectId,
                     ref: 'Product',
                     required: true,
+                },
+                // in case the product gets deleted, the product name and price are still here
+                productName: {
+                    type: String,
+                    required: true,
+                },
+                productPrice: {
+                    type: Number,
+                    required: true,
+                    min: 0,
                 },
                 quantity: {
                     type: Number,
@@ -20,7 +34,10 @@ const orderSchema = new mongoose.Schema(
             type: Number,
             default: 0,
         },
-        // how to user if third party?
+        paid: {
+            type: Boolean,
+            default: false,
+        },
     },
     {
         timestamps: true
@@ -28,11 +45,9 @@ const orderSchema = new mongoose.Schema(
 );
 
 orderSchema.pre('save', async function (next) {
-    const Product = require('./productModel');
     let totalPrice = 0;
     for (const item of this.products) {
-        const { price } = await Product.findById(item.productID).select('price');
-        totalPrice += price * item.quantity;
+        totalPrice += item.productPrice * item.quantity;
     }
     this.totalPrice = totalPrice;
     next();

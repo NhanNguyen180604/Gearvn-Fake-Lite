@@ -30,8 +30,6 @@ const getCategoryById = asyncHandler(async (req, res) => {
  * Post a new category
  * @route POST /api/categories
  * @access admin only
- * @bodyParams name - category's name
- * @statusCode 400 if no name is provided, 200 if duplicate found, 201 if success
  */
 const postCategory = asyncHandler(async (req, res) => {
     const { name } = req.body;

@@ -25,7 +25,8 @@ const getProducts = asyncHandler(async (req, res) => {
         throw new Error("Invalid per_page number");
     }
 
-    let filter = {};  // add filter if needed later
+    // get filter from the req.body here
+    let filter = {};
     const total = await Product.countDocuments(filter);
     const total_pages = Math.ceil(total / per_page);
     page = Math.min(page, total_pages);
