@@ -30,7 +30,8 @@ const productSchema = new mongoose.Schema({
             publicID: {
                 type: String,
                 required: true,
-            }
+            },
+            _id: false,
         }
     ],
     description: {

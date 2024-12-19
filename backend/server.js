@@ -1,11 +1,18 @@
 const express = require('express');
 require('dotenv').config();
 const PORT = process.env.PORT || 3000;
+const fileUpload = require('express-fileupload');
 
 const connectDB = require('./db/db');
 connectDB();
 
 const app = express();
+
+app.use(fileUpload({
+    limits: {
+        fileSize: 30 * 1000 * 1000, // 30 MB
+    },
+}));
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));

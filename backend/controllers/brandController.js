@@ -6,7 +6,6 @@ const asyncHandler = require('express-async-handler');
  * Get all brands
  * @route GET /api/brands
  * @access public
- * @statusCode 200 if success
  */
 const getBrands = asyncHandler(async (req, res) => {
     const brands = await Brand.find();
@@ -32,8 +31,6 @@ const getBrandById = asyncHandler(async (req, res) => {
  * Post a new brand
  * @route POST /api/brands
  * @access admin only
- * @bodyParams name - brand's name
- * @statusCode 400 if no name is provided, 200 if duplicate found, 201 if success
  */
 const postBrand = asyncHandler(async (req, res) => {
     const { name } = req.body;
@@ -57,8 +54,6 @@ const postBrand = asyncHandler(async (req, res) => {
  * Update a brand by ID
  * @route PUT /api/brands/:id
  * @access admin only
- * @bodyParams name - brand's name
- * @statusCode 400 if no name is provided, 200 if duplicate found, 201 if success
  */
 const putBrand = asyncHandler(async (req, res) => {
     const { name } = req.body;
@@ -79,7 +74,6 @@ const putBrand = asyncHandler(async (req, res) => {
  * Delete a brand by ID
  * @route DELETE /api/brands/:id
  * @access admin only
- * @statusCode 404 if not found, 200 if success
  */
 const deleteBrand = asyncHandler(async (req, res) => {
     const brand = await Brand.findByIdAndDelete(req.params.id);
@@ -87,10 +81,9 @@ const deleteBrand = asyncHandler(async (req, res) => {
         return res.status(404).json({ message: "Brand not found" });
     }
 
-    // TODO delete all products of this brand
-    
-    // TODO delete all products of this brand
-    
+    // delete all products of this brand
+    await Product.deleteMany({ brand: brand._id });
+
     res.status(200).json(brand);
 });
 
