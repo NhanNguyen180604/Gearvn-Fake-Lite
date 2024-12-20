@@ -2,11 +2,16 @@ const express = require('express');
 require('dotenv').config();
 const PORT = process.env.MAIN_PORT || 3001;
 const fileUpload = require('express-fileupload');
+const { clerkMiddleware } = require('@clerk/express');
+const cors = require('cors');
 
 const connectDB = require('./db/db');
 connectDB();
 
 const app = express();
+app.use(cors());
+
+app.use(clerkMiddleware());
 
 app.use(fileUpload({
     limits: {

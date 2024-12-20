@@ -1,7 +1,7 @@
 const Cart = require('../models/cartModel');
 const Product = require('../models/productModel');
 const asyncHandler = require('express-async-handler');
-const mongoose = require('mongoose');
+const { clerkClient } = require('@clerk/express');
 
 /**
  * Get a user's cart
@@ -10,7 +10,9 @@ const mongoose = require('mongoose');
  */
 const getCart = asyncHandler(async (req, res) => {
     // get user id here then get the cart
-    const cart = await Cart.findOne({ user: new mongoose.Types.ObjectId('67614a1463989edb3b46ed71') })
+    const { userId } = req.auth;
+
+    const cart = await Cart.findOne({ user: userId })
         .populate({ path: 'products.productID', model: 'Product' });
     res.status(200).json(cart);
 });
@@ -22,12 +24,13 @@ const getCart = asyncHandler(async (req, res) => {
  */
 const putCart = asyncHandler(async (req, res) => {
     // get user id here then get the cart
-    let cart = await Cart.findOne({ user: new mongoose.Types.ObjectId('67614a1463989edb3b46ed71') });
+    const { userId } = req.auth;
+    let cart = await Cart.findOne({ user: userId });
 
     // if cart doesn't exist, create one
     if (!cart) {
         cart = await Cart.create({
-            user: new mongoose.Types.ObjectId('67614a1463989edb3b46ed71'),
+            user: userId,
             products: [],
         });
     }
@@ -71,8 +74,8 @@ const putCart = asyncHandler(async (req, res) => {
  */
 const clearCart = asyncHandler(async (req, res) => {
     // get user id here
-    const user = new mongoose.Types.ObjectId('67614a1463989edb3b46ed71');
-    const clearedCart = await clearCartHelper(user, req.body.restock);
+    const { userId } = req.auth;
+    const clearedCart = await clearCartHelper(userId, req.body.restock);
     res.status(200).json(clearedCart);
 });
 

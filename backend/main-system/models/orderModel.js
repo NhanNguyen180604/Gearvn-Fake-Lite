@@ -4,7 +4,8 @@ const orderSchema = new mongoose.Schema(
     {
         // how to user if third party?
         user: {
-            type: mongoose.Schema.Types.ObjectId,
+            type: String,
+            required: true,
         },
         products: [
             {
