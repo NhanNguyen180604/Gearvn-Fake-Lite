@@ -39,7 +39,9 @@ Clerk Publishable Key and Frontend API URL -->
 
     <script defer>
         async function getClerkToken() {
-            return await Clerk.session.getToken();
+            const token = await Clerk.session.getToken();
+            //console.log(token);
+            return token;
         };
 
         async function createOrder() {
@@ -95,6 +97,42 @@ Clerk Publishable Key and Frontend API URL -->
             const data = await response.json();
             console.log(data);
         }
+
+        async function clearCart() {
+            const body = {
+                restock: true,
+            };
+
+            const token = await getClerkToken();
+            const response = await fetch('http://localhost:3000/api/carts', {
+                method: 'DELETE',
+                body: JSON.stringify(body),
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`, // Include the token in the Authorization header
+                },
+            });
+            const data = await response.json();
+            console.log(data);
+        }
+
+        async function pay() {
+            const body = {
+                orderId: '67656c53e46cbcb640e8548c',  // replace this with order id
+            };
+            
+            const token = await getClerkToken();
+            const response = await fetch('http://localhost:3000/api/sub-system/payment', {
+                method: 'POST',
+                body: JSON.stringify(body),
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`, // Include the token in the Authorization header
+                },
+            });
+            const data = await response.json();
+            console.log(data);
+        }
     </script>
 </head>
 
@@ -103,6 +141,8 @@ Clerk Publishable Key and Frontend API URL -->
     <button onclick="createOrder()">Create order</button>
     <button onclick="cancelOrder()">Cancel order</button>
     <button onclick="putCart()">Put cart</button>
+    <button onclick="clearCart()">Clear cart</button>
+    <button onclick="pay()">Pay</button>
 </body>
 
 </html>

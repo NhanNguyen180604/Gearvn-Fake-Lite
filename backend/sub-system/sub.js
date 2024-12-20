@@ -5,15 +5,22 @@ const { createServer } = require('https');
 const fs = require('fs');
 const path = require('path');
 
+const connectDB = require('../db/db');
+connectDB();
+
 const app = express();
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
 // routes
-app.use('/', (req, res) => {
+app.use('/api/users/register', (req, res) => {
     res.status(200).json("Ok");
 });
+
+app.use('/api/payment', require('./routes/paymentRoutes'));
+
+app.use(require('../middlewares/errorHandler'));
 
 const options = {
     key: fs.readFileSync(path.join(__dirname, './sslkeys/sub_key.pem')),

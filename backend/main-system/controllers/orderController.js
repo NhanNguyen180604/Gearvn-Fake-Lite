@@ -36,6 +36,11 @@ const createOrder = asyncHandler(async (req, res) => {
         });
     }
 
+    if (!products.length){
+        res.status(400);
+        throw new Error("Product empty");
+    }
+
     const order = await Order.create({
         user: userId,
         products: products,
