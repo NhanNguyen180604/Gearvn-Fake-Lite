@@ -2,9 +2,6 @@ const express = require('express');
 require('dotenv').config();
 const PORT = process.env.MAIN_PORT || 3001;
 const fileUpload = require('express-fileupload');
-const { createServer } = require('https');
-const fs = require('fs');
-const path = require('path');
 
 const connectDB = require('./db/db');
 connectDB();
@@ -30,15 +27,6 @@ app.use('/api/orders', require('./routes/orderRoutes'));
 
 // error handling
 app.use(require('./middlewares/errorHandler'));
-// app.listen(PORT, () => {
-//     console.log(`Server listen on PORT: ${PORT}`);
-// });
-
-const options = {
-    key: fs.readFileSync(path.join(__dirname, './sslkeys/main_key.pem')),
-    cert: fs.readFileSync(path.join(__dirname, './sslkeys/main_cert.pem')),
-};
-const httpsServer = createServer(options, app);
-httpsServer.listen(PORT, () => {
+app.listen(PORT, () => {
     console.log(`Server listen on PORT: ${PORT}`);
 });
