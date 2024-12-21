@@ -1,6 +1,6 @@
-const Product = require('../models/productModel');
-const Category = require('../models/categoryModel');
-const Brand = require('../models/brandModel');
+const Product = require('../../models/productModel');
+const Category = require('../../models/categoryModel');
+const Brand = require('../../models/brandModel');
 const asyncHandler = require('express-async-handler');
 const cloudinaryWrapper = require('../others/cloudinaryWrapper');
 
@@ -35,11 +35,7 @@ const getProducts = asyncHandler(async (req, res) => {
 
     const products = await Product.find(filter)
         .skip(skip)
-        .limit(per_page)
-        .populate([
-            { path: 'category', model: 'Category', select: 'name' },
-            { path: 'brand', model: 'Brand', select: 'name' },
-        ]);
+        .limit(per_page);
 
     res.status(200).json({
         products: products,
@@ -56,11 +52,7 @@ const getProducts = asyncHandler(async (req, res) => {
  * @access public
  */
 const getProductById = asyncHandler(async (req, res) => {
-    const product = await Product.findById(req.params.id)
-        .populate([
-            { path: 'category', model: 'Category', select: 'name' },
-            { path: 'brand', model: 'Brand', select: 'name' },
-        ]);
+    const product = await Product.findById(req.params.id);
 
     if (!product) {
         return res.status(404).json({ message: "Product not found" });
@@ -77,6 +69,7 @@ const getProductById = asyncHandler(async (req, res) => {
 const postProduct = asyncHandler(async (req, res) => {
     const { name, category, brand, description } = req.body;
     const price = parseInt(req.body.price);
+    const stock = parseInt(req.body.stock);
 
     if (!name || !name.trim().length) {
         res.status(400);
@@ -97,7 +90,7 @@ const postProduct = asyncHandler(async (req, res) => {
         res.status(400);
         throw new Error("Please provide a category");
     }
-    if (!(await Category.findById(category))) {
+    if (!(await Category.findOne({ name: category }))) {
         res.status(404);
         throw new Error("Category not found");
     }
@@ -106,7 +99,7 @@ const postProduct = asyncHandler(async (req, res) => {
         res.status(400);
         throw new Error("Please provide a brand");
     }
-    if (!(await Brand.findById(brand))) {
+    if (!(await Brand.findOne({ name: brand }))) {
         res.status(404);
         throw new Error("Brand not found");
     }
@@ -116,12 +109,18 @@ const postProduct = asyncHandler(async (req, res) => {
         throw new Error("Please provide a description");
     }
 
+    if (isNaN(stock) || stock < 1) {
+        res.status(400);
+        throw new Error("Invalid stock number");
+    }
+
     const product = await Product.create({
         name: name,
         price: price,
         category: category,
         brand: brand,
         description: description,
+        stock: stock,
     });
 
     if (!product) {

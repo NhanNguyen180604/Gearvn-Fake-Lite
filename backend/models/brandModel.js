@@ -5,7 +5,7 @@ const brandSchema = new mongoose.Schema({
         type: String,
         required: true,
         unique: true,
-    }
+    },
 });
 
 module.exports = mongoose.model('Brand', brandSchema);

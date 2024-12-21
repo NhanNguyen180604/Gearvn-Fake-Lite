@@ -1,7 +1,6 @@
-const Cart = require('../models/cartModel');
-const Product = require('../models/productModel');
+const Cart = require('../../models/cartModel');
+const Product = require('../../models/productModel');
 const asyncHandler = require('express-async-handler');
-const { clerkClient } = require('@clerk/express');
 
 /**
  * Get a user's cart

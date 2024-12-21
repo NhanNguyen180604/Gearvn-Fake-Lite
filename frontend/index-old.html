@@ -59,7 +59,7 @@ Clerk Publishable Key and Frontend API URL -->
 
         async function cancelOrder() {
             const token = await getClerkToken();
-            const orderID = '6765065b174ca99ebffc3aeb';  // replace this with the newly created order
+            const orderID = '676655cfee00228ce0624d7f';  // replace this with the newly created order
             const response = await fetch(`http://localhost:3000/api/orders/${orderID}`, {
                 method: 'DELETE',
                 headers: {
@@ -75,12 +75,12 @@ Clerk Publishable Key and Frontend API URL -->
             const products = {
                 products: [
                     {
-                        _id: "6763b2176bc910e0f8fd8f0f",  // replace this with your productId
+                        _id: "67664b1508f8de2582a5243b",  // replace this with your productId
                         quantity: 1,
                     },
                     {
-                        _id: "6764224b6bcdf78226b195d6",  // replace this with your productId
-                        quantity: 2,
+                        _id: "67664631f636bf43a6234570",  // replace this with your productId
+                        quantity: 1,
                     }
                 ]
             };
@@ -118,7 +118,7 @@ Clerk Publishable Key and Frontend API URL -->
 
         async function pay() {
             const body = {
-                orderId: '67656c53e46cbcb640e8548c',  // replace this with order id
+                orderId: '67665603ee00228ce0624d94',  // replace this with order id
             };
             
             const token = await getClerkToken();

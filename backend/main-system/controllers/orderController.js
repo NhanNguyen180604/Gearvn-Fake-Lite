@@ -1,6 +1,6 @@
-const Order = require('../models/orderModel');
-const Product = require('../models/productModel');
-const Cart = require('../models/cartModel');
+const Order = require('../../models/orderModel');
+const Product = require('../../models/productModel');
+const Cart = require('../../models/cartModel');
 const asyncHandler = require('express-async-handler');
 const { clearCartHelper } = require('./cartController');
 const { clerkClient } = require('@clerk/express');

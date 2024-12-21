@@ -1,5 +1,5 @@
-const Brand = require('../models/brandModel');
-const Product = require('../models/productModel');
+const Brand = require('../../models/brandModel');
+const Product = require('../../models/productModel');
 const asyncHandler = require('express-async-handler');
 
 /**
@@ -13,13 +13,13 @@ const getBrands = asyncHandler(async (req, res) => {
 });
 
 /**
- * Get a brand by ID
- * @route GET /api/brands/:id
+ * Get a brand by name
+ * @route GET /api/brands/:name
  * @access public
  * @statusCode 404 if not found, 200 if success
  */
-const getBrandById = asyncHandler(async (req, res) => {
-    const brand = await Brand.findById(req.params.id);
+const getBrandByName = asyncHandler(async (req, res) => {
+    const brand = await Brand.findOne({ name: req.params.name })
     if (!brand) {
         return res.status(404).json({ message: "Brand not found" });
     }
@@ -51,8 +51,8 @@ const postBrand = asyncHandler(async (req, res) => {
 });
 
 /**
- * Update a brand by ID
- * @route PUT /api/brands/:id
+ * Update a brand by name
+ * @route PUT /api/brands/:name
  * @access admin only
  */
 const putBrand = asyncHandler(async (req, res) => {
@@ -62,7 +62,7 @@ const putBrand = asyncHandler(async (req, res) => {
         throw new Error("Where my new name");
     }
 
-    const brand = await Brand.findByIdAndUpdate(req.params.id, { name: name }, { new: true });
+    const brand = await Brand.findOneAndUpdate({ name: req.params.name }, { name: name }, { new: true });
     if (!brand) {
         return res.status(404).json({ message: "Brand not found" });
     }
@@ -71,25 +71,25 @@ const putBrand = asyncHandler(async (req, res) => {
 });
 
 /**
- * Delete a brand by ID
- * @route DELETE /api/brands/:id
+ * Delete a brand by name
+ * @route DELETE /api/brands/:name
  * @access admin only
  */
 const deleteBrand = asyncHandler(async (req, res) => {
-    const brand = await Brand.findByIdAndDelete(req.params.id);
+    const brand = await Brand.findOneAndDelete({ name: req.params.name });
     if (!brand) {
         return res.status(404).json({ message: "Brand not found" });
     }
 
     // delete all products of this brand
-    await Product.deleteMany({ brand: brand._id });
+    await Product.deleteMany({ brand: brand.name });
 
     res.status(200).json(brand);
 });
 
 module.exports = {
     getBrands,
-    getBrandById,
+    getBrandByName,
     postBrand,
     putBrand,
     deleteBrand,

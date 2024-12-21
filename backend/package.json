@@ -4,8 +4,9 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "server": "nodemon ./main-system/server.js",
-    "sub-system": "nodemon ./sub-system/sub.js"
+    "main-system": "nodemon ./main-system/server.js",
+    "sub-system": "nodemon ./sub-system/sub.js",
+    "dev": "concurrently \"npm run main-system\" \"npm run sub-system\""
   },
   "author": "Lac Long Thuy Nhan",
   "license": "ISC",
@@ -19,9 +20,11 @@
     "express": "^4.21.2",
     "express-async-handler": "^1.2.0",
     "express-fileupload": "^1.5.1",
+    "express-handlebars": "^8.0.1",
     "mongoose": "^8.9.0"
   },
   "devDependencies": {
+    "concurrently": "^9.1.0",
     "nodemon": "^3.1.9"
   }
 }

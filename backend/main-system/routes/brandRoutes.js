@@ -6,8 +6,8 @@ router.route('/')
     .get(brandController.getBrands)
     .post(brandController.postBrand);
 
-router.route('/:id')
-    .get(brandController.getBrandById)
+router.route('/:name')
+    .get(brandController.getBrandByName)
     .put(brandController.putBrand)
     .delete(brandController.deleteBrand);
 

@@ -11,14 +11,12 @@ const productSchema = new mongoose.Schema({
         min: 0,
     },
     category: {
-        type: mongoose.Schema.Types.ObjectId,
+        type: String,
         required: true,
-        ref: 'Category',
     },
     brand: {
-        type: mongoose.Schema.Types.ObjectId,
+        type: String,
         required: true,
-        ref: 'Brand',
     },
     images: [
         {

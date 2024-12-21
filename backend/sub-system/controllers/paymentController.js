@@ -1,6 +1,6 @@
 const asyncHandler = require('express-async-handler');
 const { clerkClient } = require('@clerk/express');
-const Order = require('../../main-system/models/orderModel');
+const Order = require('./../../models/orderModel');
 
 const pay = asyncHandler(async (req, res) => {
     const { userId } = req.auth;

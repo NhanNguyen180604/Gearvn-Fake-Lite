@@ -1,5 +1,5 @@
-const Category = require('../models/categoryModel');
-const Product = require('../models/productModel');
+const Category = require('../../models/categoryModel');
+const Product = require('../../models/productModel');
 const asyncHandler = require('express-async-handler');
 
 /**
@@ -13,12 +13,12 @@ const getCategories = asyncHandler(async (req, res) => {
 });
 
 /**
- * Get a category by ID
- * @route GET /api/categories/:id
+ * Get a category by name
+ * @route GET /api/categories/:name
  * @access public
  */
-const getCategoryById = asyncHandler(async (req, res) => {
-    const category = await Category.findById(req.params.id);
+const getCategoryByName = asyncHandler(async (req, res) => {
+    const category = await Category.findOne({ name: req.params.name });
     if (!category) {
         return res.status(404).json({ message: "Category not found" });
     }
@@ -50,8 +50,8 @@ const postCategory = asyncHandler(async (req, res) => {
 });
 
 /**
- * Update a category by ID
- * @route PUT /api/categories/:id
+ * Update a category by name
+ * @route PUT /api/categories/:name
  * @access admin only
  */
 const putCategory = asyncHandler(async (req, res) => {
@@ -61,7 +61,7 @@ const putCategory = asyncHandler(async (req, res) => {
         throw new Error("Where my new name");
     }
 
-    const category = await Category.findByIdAndUpdate(req.params.id, { name: name }, { new: true });
+    const category = await Category.findOneAndUpdate({ name: req.params.name }, { name: name }, { new: true });
     if (!category) {
         return res.status(404).json({ message: "Category not found" });
     }
@@ -70,25 +70,25 @@ const putCategory = asyncHandler(async (req, res) => {
 });
 
 /**
- * Delete a category by ID
- * @route DELETE /api/categories/:id
+ * Delete a category by name
+ * @route DELETE /api/categories/:name
  * @access admin only
  */
 const deleteCategory = asyncHandler(async (req, res) => {
-    const category = await Category.findByIdAndDelete(req.params.id);
+    const category = await Category.findOneAndDelete({ name: req.params.name });
     if (!category) {
         return res.status(404).json({ message: "Category not found" });
     }
 
     // delete all products of this category
-    await Product.deleteMany({ category: category._id });
+    await Product.deleteMany({ category: category.name });
 
     res.status(200).json(category);
 });
 
 module.exports = {
     getCategories,
-    getCategoryById,
+    getCategoryByName,
     postCategory,
     putCategory,
     deleteCategory,
