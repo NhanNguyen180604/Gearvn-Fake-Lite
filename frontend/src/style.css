@@ -14,5 +14,27 @@
   --light-gray: #FEFAFA;
   --gray: #F8F8F8;
   --dark-gray: #7f7f7f;
+
+  /* Shop Colors */
+  --shop-header-color: #FFE7DD;
+  --shop-signin-color: #E3E3E3;
+  --shop-register-color: #2C2C2C;
+
+  /* Admin Colors */
+  --admin-edit-color: #3BC0F0; /* edit button */
+  --admin-paging-color: #436FFF; /*curent page*/
+  --admin-header-color: #46AEEF; /* header */
+
+  /* Common Colors */
+  --color-white: #FFFFFF;
+  --color-red: #E13737; /* Delete, block */
+  --color-black: #000000;
+  --color-gray: #737373; /* Faded text, search text */
+  --color-yellow: #EEC13A; /* adminTab */
+  --color-blue: #436FFF; /* PaginationText */
+
+  /* Backgrounds */
+  --background-gray: #F5F5F5;
+  --background-white: #FFFFFF;
 }
 
