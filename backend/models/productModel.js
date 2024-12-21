@@ -40,9 +40,13 @@ const productSchema = new mongoose.Schema({
         type: Number,
         required: true,
         min: 0,
+    },
+    overallRating: {
+        type: Number,
+        default: 0,
     }
 });
 
-productSchema.index({ name: 'text' });
+productSchema.index({ '$**': 'text' });
 
 module.exports = mongoose.model('Product', productSchema);

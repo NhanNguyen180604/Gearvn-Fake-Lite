@@ -25,8 +25,32 @@ const getProducts = asyncHandler(async (req, res) => {
         throw new Error("Invalid per_page number");
     }
 
-    // get filter from the req.body here
+    // get filter from the request here
     let filter = {};
+    console.log(req.query);
+    if (req.query.q) {
+        filter.name = { $regex: req.query.q.trim(), $options: "i" };
+    }
+    if (req.query.category) {
+        filter.category = req.query.category;
+    }
+    if (req.query.min_price || !isNaN(parseInt(req.query.min_price))) {
+        filter.price = {};
+        filter.price.$gte = parseInt(req.query.min_price);
+    }
+    if (req.query.max_price || !isNaN(parseInt(req.query.max_price))) {
+        if (!filter.price) filter.price = {};
+        filter.price.$lte = parseInt(req.query.max_price);
+    }
+    let sort = {};
+    if (req.query.price_sort) {
+        const order = parseInt(req.query.price_sort);
+        if (order === 1 || order === -1)
+            sort.price = 1;
+    }
+
+    console.log(filter);
+
     const total = await Product.countDocuments(filter);
     const total_pages = Math.ceil(total / per_page);
     page = Math.min(page, total_pages);
@@ -35,7 +59,8 @@ const getProducts = asyncHandler(async (req, res) => {
 
     const products = await Product.find(filter)
         .skip(skip)
-        .limit(per_page);
+        .limit(per_page)
+        .sort(sort);
 
     res.status(200).json({
         products: products,
@@ -121,6 +146,7 @@ const postProduct = asyncHandler(async (req, res) => {
         brand: brand,
         description: description,
         stock: stock,
+        overallRating: 0,
     });
 
     if (!product) {
@@ -151,7 +177,11 @@ const postProduct = asyncHandler(async (req, res) => {
  * @route PUT /api/products/:id
  */
 const putProduct = asyncHandler(async (req, res) => {
-    // pray that we dont put invalid category and brand IDs in req.body
+    if (req.body.overallRating){
+        res.status(403);
+        throw new Error("Not allowed to change overall rating");
+    }
+
     const product = await Product.findByIdAndUpdate(req.params.id, req.body, { new: true });
     if (!product) {
         res.status(404);

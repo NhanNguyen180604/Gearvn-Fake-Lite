@@ -30,6 +30,7 @@ app.use('/api/sub-system', require('./routes/subsystemRoutes'));
 app.use('/api/categories', require('./routes/categoryRoutes'));
 app.use('/api/brands', require('./routes/brandRoutes'));
 app.use('/api/products', require('./routes/productRoutes'));
+app.use('/api/ratings', require('./routes/ratingRoutes'));
 app.use('/api/carts', require('./routes/cartRoutes'));
 app.use('/api/orders', require('./routes/orderRoutes'));
 
