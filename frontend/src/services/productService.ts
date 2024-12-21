@@ -1,5 +1,6 @@
 const API = "http://localhost:3000/api/products";
 import { type ProductResponse } from "../types/productType";
+import axios, { AxiosError, isAxiosError } from "axios";
 
 export const getProducts = async (
 	page = 1,
@@ -17,4 +18,25 @@ export const getProducts = async (
 	if (response.status !== 200) return null;
 
 	return await response.json();
+};
+
+export const deleteProduct = async (id: string) => {
+	try {
+		const response = await axios.delete(API + `/${id}`);
+		return { status: response.status, data: response.data };
+	} catch (err) {
+		if (isAxiosError(err)) {
+			const error = err as AxiosError;
+			return {
+				status: error.response?.status,
+				message: error.response?.data,
+			};
+		} else {
+			console.log(err);
+			return {
+				status: 500,
+				message: 'No idea',
+			};
+		}
+	}
 };

@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { onMounted, ref, watch } from 'vue';
-import { getProducts } from '../services/productService';
+import { getProducts, deleteProduct } from '../services/productService';
 import { type Product } from '../types/productType';
 import { type Category } from '../types/categoryType';
 import { getCategories } from '../services/categoryService';
@@ -110,6 +110,21 @@ const setPriceSort = (newOrder: number) => {
     else search.value.priceSort = 0;
 };
 
+const deleteProductWrapper = async (id: string) => {
+    // console.log(id);
+    const response = await deleteProduct(id);
+    if (response.status !== 200) {
+        console.log('Failed to delete');
+        console.log(response.message);
+    }
+    // update the view
+    else {
+        if (products.value) {
+            products.value = products.value.filter(product => product._id !== id);
+        }
+    }
+}
+
 </script>
 
 <template>
@@ -164,11 +179,11 @@ const setPriceSort = (newOrder: number) => {
             </div>
         </div>
 
-        <div v-if="loading">
+        <div v-if="loading" class="temp-text">
             Loading...
         </div>
         <div v-else>
-            <div v-if="products">
+            <div v-if="products?.length">
                 <div class="productList">
                     <div v-for="product in products" :key="product.id" class="productContainer">
                         <div class="productImage">
@@ -182,8 +197,8 @@ const setPriceSort = (newOrder: number) => {
                             <div></div>
                         </div>
                         <div class="productBTN">
-                            <button class="deleteBTN">Delete</button>
-                            <button class="editBTN">Edit</button>
+                            <button class="deleteBTN" @click="deleteProductWrapper(product._id)">Xóa</button>
+                            <button class="editBTN">Sửa</button>
                         </div>
                     </div>
                 </div>
@@ -199,7 +214,7 @@ const setPriceSort = (newOrder: number) => {
                     <div class="page-item" @click="loadPage(page + 1)">Trang kế</div>
                 </div>
             </div>
-            <div v-else>
+            <div v-else class="temp-text">
                 No products
             </div>
         </div>
@@ -232,7 +247,7 @@ const setPriceSort = (newOrder: number) => {
     font-size: 2rem;
 }
 
-.body-container{
+.body-container {
     border: 1px solid black;
     border-top: none;
     border-bottom-left-radius: 20px;
@@ -399,5 +414,15 @@ input[type='text'] {
 .pagination-outter>.page-item:last-of-type {
     border-top-right-radius: 10px;
     border-bottom-right-radius: 10px;
+}
+
+.temp-text{
+    width: 100%;
+    min-height: 300px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.5rem;
+    font-weight: bold;
 }
 </style>

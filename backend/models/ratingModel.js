@@ -8,7 +8,7 @@ const ratingSchema = new mongoose.Schema({
         required: true,
     },
     user: {
-        type: string,
+        type: String,
         required: true,
     },
     score: {

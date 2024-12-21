@@ -27,7 +27,6 @@ const getProducts = asyncHandler(async (req, res) => {
 
     // get filter from the request here
     let filter = {};
-    console.log(req.query);
     if (req.query.q) {
         filter.name = { $regex: req.query.q.trim(), $options: "i" };
     }
@@ -44,12 +43,12 @@ const getProducts = asyncHandler(async (req, res) => {
     }
     let sort = {};
     if (req.query.price_sort) {
+        console.log(req.query.price_sort);
         const order = parseInt(req.query.price_sort);
         if (order === 1 || order === -1)
-            sort.price = 1;
+            sort.price = order;
+        console.log(sort);
     }
-
-    console.log(filter);
 
     const total = await Product.countDocuments(filter);
     const total_pages = Math.ceil(total / per_page);
