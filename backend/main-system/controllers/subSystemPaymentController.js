@@ -3,11 +3,15 @@ const axiosInstance = require('../../axios-config/axios-config');
 
 const pay = asyncHandler(async (req, res) => {
     try {
-        const { orderId } = req.body;
+        const { fullName, phoneNumber, city, district, street } = req.body;
         const token = await req.auth.getToken();
         const response = await axiosInstance.post('/api/payment',
             {
-                orderId: orderId,
+                fullName,
+                phoneNumber,
+                city,
+                district,
+                street,
             },
             {
                 headers: {
@@ -18,10 +22,10 @@ const pay = asyncHandler(async (req, res) => {
         res.status(response.status).json(response.data);
     }
     catch (error) {
-        if (error.response){
+        if (error.response) {
             return res.status(error.response.status).json(error.response.data);
         }
-        
+
         throw error;
     }
 });

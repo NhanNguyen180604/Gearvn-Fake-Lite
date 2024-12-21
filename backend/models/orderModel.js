@@ -31,13 +31,29 @@ const orderSchema = new mongoose.Schema(
                 }
             }
         ],
+        fullName: {
+            type: String,
+            required: true,
+        },
+        phoneNumber: {
+            type: String,
+            required: true,
+        },
+        city: {
+            type: String,
+            required: true,
+        },
+        district: {
+            type: String,
+            required: true,
+        },
+        street: {
+            type: String,
+            required: true,
+        },
         totalPrice: {
             type: Number,
             default: 0,
-        },
-        paid: {
-            type: Boolean,
-            default: false,
         },
     },
     {
