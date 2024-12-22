@@ -1,10 +1,10 @@
 export interface Product {
-	brand: string;
-	category: string;
-	description: string;
-	images: ProductImage[];
 	name: string;
 	price: number;
+	category: string;
+	brand: string;
+	description: string;
+	images: ProductImage[] | [];
 	stock: number;
 	_id: string;
 	[key: string]: any;
@@ -14,6 +14,11 @@ export interface ProductImage {
 	publicID: string;
 	url: string;
 	[key: string]: any;
+}
+
+export interface PreviewImage {
+	file: File;
+	objectURL: string;
 }
 
 export interface ProductResponse {

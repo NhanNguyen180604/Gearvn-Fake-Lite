@@ -1,0 +1,419 @@
+<script lang="ts" setup>
+import PreviewUpload from '../components/PreviewUpload.vue';
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
+import { faXmark } from '@fortawesome/free-solid-svg-icons/faXmark';
+import { getCategories } from '../services/categoryService';
+import { getBrands } from '../services/brandService';
+import { postProduct } from '../services/productService';
+import { type Category } from '../types/categoryType';
+import { type Brand } from '../types/brandType';
+import { type Product, type PreviewImage } from '../types/productType';
+import { onMounted, ref } from 'vue';
+import { useRouter } from 'vue-router';
+
+const router = useRouter();
+
+const categories = ref<Category[] | null>(null);
+const brands = ref<Brand[] | null>(null);
+
+const initialize = async () => {
+    const cateResponse = await getCategories();
+    if (cateResponse) {
+        categories.value = cateResponse;
+        product.value.category = cateResponse[0].name;
+    }
+    else {
+        console.log("Couldn't get categories");
+    }
+
+    const brandResponse = await getBrands();
+    if (brandResponse) {
+        brands.value = brandResponse;
+        product.value.brand = brandResponse[0].name;
+    }
+    else {
+        console.log("Couldn't get brands");
+    }
+};
+
+const product = ref<Product>({
+    _id: '',
+    name: '',
+    price: 0,
+    category: '',
+    brand: '',
+    description: '',
+    stock: 0,
+    images: [],  // not using this,
+    imagePreviews: [],
+});
+
+const thumbnail = ref<PreviewImage | null>(null);
+const handleUploadThumbnail = (e: Event) => {
+    const target = e.target as HTMLInputElement;
+    if (target.files) {
+        const file = target.files[0];
+        if (thumbnail.value) {
+            // dont be a p*ssy, manage your memory
+            URL.revokeObjectURL(thumbnail.value.objectURL);
+        }
+        thumbnail.value = {
+            file: file,
+            objectURL: URL.createObjectURL(file),
+        };
+    }
+};
+
+const images = ref<PreviewImage[]>([]);
+const handleUploadImages = (e: Event) => {
+    const target = e.target as HTMLInputElement;
+    if (target.files) {
+        for (const file of target.files) {
+            images.value.push({
+                file: file,
+                objectURL: URL.createObjectURL(file),
+            });
+        }
+    }
+};
+
+const removeImage = (index: number) => {
+    if (index >= 0 && index < images.value.length) {
+        URL.revokeObjectURL(images.value[index].objectURL);
+        images.value = [...images.value.slice(0, index), ...images.value.slice(index + 1)];
+    }
+}
+
+const submitting = ref(false);
+const submit = async () => {
+    submitting.value = true;
+
+    const formData = new FormData();
+    formData.append('name', product.value.name);
+    formData.append('price', product.value.price.toString());
+    formData.append('category', product.value.category);
+    formData.append('brand', product.value.brand);
+    formData.append('description', product.value.description);
+    formData.append('stock', product.value.stock.toString());
+    if (thumbnail.value) {
+        formData.append('images', thumbnail.value.file);
+    }
+    images.value.forEach(image => {
+        formData.append('images', image.file);
+    });
+
+    const response = await postProduct(formData);
+    if (response.status === 201) {
+        // free memory, dont be a p*ssy
+        if (thumbnail.value) {
+            URL.revokeObjectURL(thumbnail.value.objectURL);
+        }
+        images.value.forEach(image => {
+            URL.revokeObjectURL(image.objectURL);
+        });
+
+        // view that product
+        router.push(`/products/${response.data._id}`);
+    }
+    else {
+        console.log("Failed to post product");
+        console.log(response);
+    }
+
+    submitting.value = false;
+}
+
+onMounted(async () => {
+    await initialize();
+});
+
+const reset = () => {
+    product.value = {
+        _id: '',
+        name: '',
+        price: 0,
+        category: categories.value ? categories.value[0].name : '',
+        brand: brands.value ? brands.value[0].name : '',
+        description: '',
+        stock: 0,
+        images: [],  // not using this,
+        imagePreviews: [],
+    };
+
+    if (thumbnail.value) {
+        URL.revokeObjectURL(thumbnail.value.objectURL);
+        thumbnail.value = null;
+    }
+
+    images.value.forEach(image => {
+        URL.revokeObjectURL(image.objectURL);
+    });
+    images.value = [];
+};
+
+const canPost = () => {
+    return product.value.name.trim().length
+        && categories.value?.some(category => category.name === product.value.category)
+        && brands.value?.some(brand => brand.name === product.value.brand)
+        && product.value.price && product.value.stock
+        && product.value.description.trim().length
+        && thumbnail.value && !submitting.value;
+};
+
+</script>
+
+<template>
+    <form>
+        <h1>Thêm sản phẩm mới</h1>
+
+        <div class="leftColumn">
+            <div class="thumbnail">
+                <img :src="thumbnail?.objectURL" class="img-fluid">
+            </div>
+            <label class="uploadFileLabel">
+                Thêm hình ảnh chính
+                <input type="file" accept=".png, .jpg, .jpeg" @change="handleUploadThumbnail" @click="(e: Event) => {
+                    const target = e.target as HTMLInputElement;
+                    target.value = '';
+                }">
+            </label>
+
+            <div class="otherImages">
+                <div v-for="(image, index) in images" :key="`other-image-preview-${index}`">
+                    <img :src="image.objectURL" class="img-fluid">
+                    <label @click.prevent="removeImage(index)">
+                        <FontAwesomeIcon :icon="faXmark" />
+                    </label>
+                </div>
+            </div>
+            <label class="uploadFileLabel">
+                Thêm các hình ảnh phụ
+                <input type="file" multiple accept=".png, .jpg, .jpeg" @change="handleUploadImages" @click="(e: Event) => {
+                    const target = e.target as HTMLInputElement;
+                    target.value = '';
+                }">
+            </label>
+
+            <div class="actionBTNs">
+                <button class="resetBTN" @click.prevent="reset">Xóa các thay đổi</button>
+                <button class="submitBTN" :disabled="!canPost()" @click.prevent="submit">
+                    {{ submitting ? 'Đang đăng...' : "Đăng sản phẩm" }}
+                </button>
+                <button class="returnBTN" @click.prevent="">Hủy và quay về</button>
+            </div>
+        </div>
+
+        <div class="rightColumn">
+            <section>
+                <label for="Name">Tên sản phẩm</label>
+                <input type="text" v-model="product.name" name="Name" id="Name">
+            </section>
+
+            <section>
+                <label for="Price">Giá</label>
+                <input type="number" min="1" v-model="product.price" name="Price" id="Price">
+            </section>
+
+            <section>
+                <label for="Category">Danh mục</label>
+                <select v-model="product.category" name="Category" id="Category">
+                    <option v-for="category in categories" :key="category._id" :value="category.name">
+                        {{ category.name }}
+                    </option>
+                </select>
+            </section>
+
+            <section>
+                <label for="Brand">Hãng</label>
+                <select v-model="product.brand" name="Brand" id="Brand">
+                    <option v-for="brand in brands" :key="brand._id" :value="brand.name">
+                        {{ brand.name }}
+                    </option>
+                </select>
+            </section>
+
+            <section>
+                <label for="Stock">Số lượng tồn kho</label>
+                <input type="number" min="0" v-model="product.stock" name="Stock" id="Stock">
+            </section>
+
+            <section>
+                <label for="Description">
+                    Mô tả chi tiết
+                </label>
+                <textarea name="Description" id="Description" v-model="product.description" rows="5"></textarea>
+            </section>
+        </div>
+    </form>
+</template>
+
+<style lang="css" scoped>
+form {
+    display: grid;
+    gap: 20px;
+    grid-template-columns: 4fr 6fr;
+    padding: 0 8rem;
+    font-family: inherit;
+}
+
+h1 {
+    grid-column: 1/3;
+    text-align: center;
+}
+
+.leftColumn,
+.rightColumn {
+    display: flex;
+    flex-direction: column;
+}
+
+.leftColumn {
+    align-items: center;
+    gap: 10px;
+}
+
+.uploadFileLabel {
+    cursor: pointer;
+}
+
+.leftColumn input[type='file'] {
+    display: none;
+}
+
+.description {
+    grid-column: 1/3;
+}
+
+textarea {
+    padding: 1rem;
+    font-size: 1rem;
+    font-family: inherit;
+    resize: vertical;
+    border-radius: 5px;
+    border: 1px solid black;
+}
+
+section {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 1rem;
+    font-size: 1rem;
+}
+
+section *:nth-child(2) {
+    padding: 1rem;
+    margin-top: 5px;
+    border-radius: 5px;
+    outline: none;
+    border: 1px solid black;
+    background: var(--gray);
+    font-size: 1rem;
+    font-family: inherit;
+}
+
+section *:nth-child(2):hover {
+    outline: 1px solid black;
+}
+
+.img-fluid {
+    object-fit: contain;
+    max-height: 100%;
+    max-width: 100%;
+}
+
+.otherImages,
+.thumbnail {
+    background: var(--gray);
+    min-height: 200px;
+    width: 100%;
+}
+
+.thumbnail {
+    display: flex;
+    align-items: center;
+}
+
+.otherImages {
+    margin-top: 10px;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+    align-items: center;
+}
+
+.otherImages>div {
+    position: relative;
+}
+
+.otherImages label {
+    position: absolute;
+    top: 0;
+    right: 0;
+    transform: translate(50%, -50%);
+    border: none;
+    border-radius: 99px;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    background: var(--color-gray);
+    color: white;
+}
+
+.otherImages label:hover {
+    opacity: 0.7;
+}
+
+.uploadFileLabel {
+    background: var(--ocean-blue);
+    color: white;
+    font-weight: 600;
+    padding: 0.5rem 1rem;
+    border-radius: 1rem;
+    transition: 0.2s ease;
+}
+
+.uploadFileLabel:hover {
+    opacity: 0.7;
+}
+
+.actionBTNs {
+    margin-top: 1rem;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    gap: 10px;
+}
+
+.actionBTNs button {
+    padding: 12px 0;
+    font-size: 1rem;
+    font-family: inherit;
+    font-weight: bold;
+    transition: 0.2s ease;
+    cursor: pointer;
+    border: none;
+    border-radius: 10px;
+}
+
+.actionBTNs button:not(:disabled):hover {
+    opacity: 0.7;
+}
+
+.resetBTN {
+    background: var(--color-red);
+}
+
+.submitBTN,
+.returnBTN {
+    background: var(--ocean-blue);
+    color: white;
+}
+
+.submitBTN:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+</style>

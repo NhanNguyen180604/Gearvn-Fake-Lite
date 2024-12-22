@@ -7,13 +7,12 @@
   -moz-osx-font-smoothing: grayscale;
 
   --ocean-blue: #3B7AF0;
-  --sky-blue: #3BC0F0;
-
-  --light-red: #DC7A7A;
 
   --light-gray: #FEFAFA;
   --gray: #F8F8F8;
   --dark-gray: #7f7f7f;
+
+  --grid-line: #BDBDBD;
 
   /* Shop Colors */
   --shop-header-color: #FFE7DD;
@@ -24,6 +23,7 @@
   --admin-edit-color: #3BC0F0; /* edit button */
   --admin-paging-color: #436FFF; /*curent page*/
   --admin-header-color: #46AEEF; /* header */
+  --admin-header-current-tab-color: #2e97d8; /* header */
 
   /* Common Colors */
   --color-white: #FFFFFF;

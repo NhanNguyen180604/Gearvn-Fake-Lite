@@ -4,8 +4,12 @@ import { getProducts, deleteProduct } from '../services/productService';
 import { type Product } from '../types/productType';
 import { type Category } from '../types/categoryType';
 import { getCategories } from '../services/categoryService';
+import { useRouter } from 'vue-router';
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
+import { faSearch } from '@fortawesome/free-solid-svg-icons';
 
 const loading = ref(true);
+const router = useRouter();
 const products = ref<Product[] | null>(null);
 const page = ref(1);
 const perPage = 5;
@@ -130,14 +134,17 @@ const deleteProductWrapper = async (id: string) => {
 <template>
     <div class="header">
         <span>Quản lý sản phẩm</span>
-        <button class="addBTN">
+        <button class="addBTN" @click="() => router.push('/products/new')">
             Thêm
         </button>
     </div>
 
     <div class="body-container">
         <div class="toolbar">
-            <input type="text" v-model="search.query" placeholder="Tìm kiếm sản phẩm">
+            <div class="searchBar">
+                <FontAwesomeIcon :icon="faSearch" class="searchIcon" />
+                <input type="text" v-model="search.query" placeholder="Tìm kiếm sản phẩm">
+            </div>
             <div class="filters">
                 <div class="relative">
                     <button class="toggleBTN" @click="() => showCateFilter = !showCateFilter">Loại</button>
@@ -180,7 +187,7 @@ const deleteProductWrapper = async (id: string) => {
         </div>
 
         <div v-if="loading" class="temp-text">
-            Loading...
+            Đang tải...
         </div>
         <div v-else>
             <div v-if="products?.length">
@@ -194,24 +201,28 @@ const deleteProductWrapper = async (id: string) => {
                             <div>Tên sản phẩm: {{ product.name }}</div>
                             <div>Giá: {{ product.price.toLocaleString() }} VNĐ</div>
                             <div>Danh mục: {{ product.category }}</div>
-                            <div></div>
                         </div>
                         <div class="productBTN">
                             <button class="deleteBTN" @click="deleteProductWrapper(product._id)">Xóa</button>
-                            <button class="editBTN">Sửa</button>
+                            <button class="editBTN"
+                                @click="() => router.push(`/products/${product._id}/edit`)">Sửa</button>
                         </div>
                     </div>
                 </div>
 
                 <div class="pagination-outter">
-                    <div class="page-item" @click="loadPage(page - 1)">Trang trước</div>
+                    <div class="page-item" @click="loadPage(page - 1)" :class="{ disabled: page === 1 }">
+                        Trang trước
+                    </div>
                     <div class="pagination-container">
                         <div v-for="n in totalPages" class="page-item" :class="{ active: n === page }"
                             @click="loadPage(n)">
                             {{ n }}
                         </div>
                     </div>
-                    <div class="page-item" @click="loadPage(page + 1)">Trang kế</div>
+                    <div class="page-item" @click="loadPage(page + 1)" :class="{ disabled: page === totalPages }">
+                        Trang kế
+                    </div>
                 </div>
             </div>
             <div v-else class="temp-text">
@@ -260,15 +271,28 @@ const deleteProductWrapper = async (id: string) => {
     justify-content: space-between;
 }
 
+.searchBar {
+    background: var(--gray);
+    width: 70%;
+    padding: 0 1rem;
+    border-radius: 15px;
+    position: relative;
+}
+
+.searchIcon {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
 input[type='text'] {
     line-height: 2rem;
     font-size: 1rem;
     padding: 0 1.5rem;
-    border-radius: 15px;
     border: none;
     outline: none;
-    background: var(--gray);
-    width: 50%;
+    background: none;
+    width: calc(100% - 1.5rem);
 }
 
 .filters {
@@ -337,13 +361,23 @@ input[type='text'] {
     display: grid;
     grid-template-columns: 1;
     grid-auto-rows: 1fr;
+    margin-top: 2rem;
 }
 
 .productContainer {
     display: grid;
     grid-template-columns: 200px auto 200px;
-    gap: 10px;
+    gap: 20px;
     align-items: center;
+    border-bottom: 1px solid var(--grid-line);
+}
+
+.productContainer:first-of-type {
+    border-top: 1px solid var(--grid-line);
+}
+
+.productImage {
+    padding: 0 10px;
 }
 
 .img-fluid {
@@ -354,6 +388,7 @@ input[type='text'] {
 
 .productBTN {
     display: flex;
+    justify-self: center;
     gap: 10px;
 }
 
@@ -368,11 +403,11 @@ input[type='text'] {
 }
 
 .deleteBTN {
-    background: var(--light-red);
+    background: var(--color-red);
 }
 
 .editBTN {
-    background: var(--sky-blue);
+    background: var(--admin-edit-color);
 }
 
 .productBTN *:hover {
@@ -387,7 +422,7 @@ input[type='text'] {
 }
 
 .pagination-outter {
-    margin-bottom: 2rem;
+    margin: 2rem 0;
 }
 
 .page-item {
@@ -399,6 +434,11 @@ input[type='text'] {
     padding: 5px;
     min-height: 30px;
     text-align: center;
+    color: var(--color-blue);
+}
+
+.page-item.disabled {
+    color: black;
 }
 
 .page-item.active {
@@ -416,7 +456,7 @@ input[type='text'] {
     border-bottom-right-radius: 10px;
 }
 
-.temp-text{
+.temp-text {
     width: 100%;
     min-height: 300px;
     display: flex;

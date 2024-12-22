@@ -21,8 +21,14 @@ export const getProducts = async (
 };
 
 export const deleteProduct = async (id: string) => {
+	// get token here
+	const token = "";
 	try {
-		const response = await axios.delete(API + `/${id}`);
+		const response = await axios.delete(API + `/${id}`, {
+			headers: {
+				Authorization: `Bearer ${token}`,
+			},
+		});
 		return { status: response.status, data: response.data };
 	} catch (err) {
 		if (isAxiosError(err)) {
@@ -35,7 +41,35 @@ export const deleteProduct = async (id: string) => {
 			console.log(err);
 			return {
 				status: 500,
-				message: 'No idea',
+				message: "No idea",
+			};
+		}
+	}
+};
+
+export const postProduct = async (formData: FormData) => {
+	// get token here
+	const token = "";
+	try {
+		const response = await axios.post(API, formData, {
+			headers: {
+				"Content-Type": "multipart/form-data",
+				Authorization: `Bearer ${token}`,
+			},
+		});
+		return { status: response.status, data: response.data };
+	} catch (err) {
+		if (isAxiosError(err)) {
+			const error = err as AxiosError;
+			return {
+				status: error.response?.status,
+				message: error.response?.data,
+			};
+		} else {
+			console.log(err);
+			return {
+				status: 500,
+				message: "No idea",
 			};
 		}
 	}
