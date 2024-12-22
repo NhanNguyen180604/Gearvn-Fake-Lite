@@ -16,6 +16,7 @@ nav {
     display: flex;
     align-items: center;
     gap: 1rem;
+    padding: 0 1rem;
 }
 
 nav a{

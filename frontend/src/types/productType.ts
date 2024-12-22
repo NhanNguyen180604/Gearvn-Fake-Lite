@@ -19,6 +19,7 @@ export interface ProductImage {
 export interface PreviewImage {
 	file: File;
 	objectURL: string;
+	[key: string]: any;
 }
 
 export interface ProductResponse {

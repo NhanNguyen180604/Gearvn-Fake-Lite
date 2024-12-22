@@ -7,6 +7,7 @@ import { getCategories } from '../services/categoryService';
 import { useRouter } from 'vue-router';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import { faSearch } from '@fortawesome/free-solid-svg-icons';
+import Pagination from './Pagination.vue';
 
 const loading = ref(true);
 const router = useRouter();
@@ -134,7 +135,7 @@ const deleteProductWrapper = async (id: string) => {
 <template>
     <div class="header">
         <span>Quản lý sản phẩm</span>
-        <button class="addBTN" @click="() => router.push('/products/new')">
+        <button @click="() => router.push('/products/new')">
             Thêm
         </button>
     </div>
@@ -193,10 +194,10 @@ const deleteProductWrapper = async (id: string) => {
             <div v-if="products?.length">
                 <div class="productList">
                     <div v-for="product in products" :key="product.id" class="productContainer">
-                        <div class="productImage">
+                        <div class="productImage" @click="() => router.push(`/products/${product._id}/edit`)">
                             <img :src="product.images[0].url" class="img-fluid">
                         </div>
-                        <div class="productInfo">
+                        <div class="productInfo" @click="() => router.push(`/products/${product._id}/edit`)">
                             <div>ID: {{ product._id }}</div>
                             <div>Tên sản phẩm: {{ product.name }}</div>
                             <div>Giá: {{ product.price.toLocaleString() }} VNĐ</div>
@@ -210,20 +211,7 @@ const deleteProductWrapper = async (id: string) => {
                     </div>
                 </div>
 
-                <div class="pagination-outter">
-                    <div class="page-item" @click="loadPage(page - 1)" :class="{ disabled: page === 1 }">
-                        Trang trước
-                    </div>
-                    <div class="pagination-container">
-                        <div v-for="n in totalPages" class="page-item" :class="{ active: n === page }"
-                            @click="loadPage(n)">
-                            {{ n }}
-                        </div>
-                    </div>
-                    <div class="page-item" @click="loadPage(page + 1)" :class="{ disabled: page === totalPages }">
-                        Trang kế
-                    </div>
-                </div>
+                <Pagination @page-change="(new_page) => loadPage(new_page)" :page="page" :total-pages="totalPages"/>
             </div>
             <div v-else class="temp-text">
                 No products
@@ -232,7 +220,13 @@ const deleteProductWrapper = async (id: string) => {
     </div>
 </template>
 
-<style lang="css" scoped>
+<style lang="scss" scoped>
+.flex-center {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
 .relative {
     position: relative;
 }
@@ -243,19 +237,31 @@ const deleteProductWrapper = async (id: string) => {
 
 .header {
     display: flex;
-    justify-content: space-between
-}
-
-.header {
+    justify-content: space-between;
     padding: 0.5rem 1rem;
     border: 1px solid black;
     border-top-left-radius: 20px;
     border-top-right-radius: 20px;
-}
 
-.header span {
-    font-weight: bold;
-    font-size: 2rem;
+    span {
+        font-weight: bold;
+        font-size: 2rem;
+    }
+
+    button {
+        font-size: 1rem;
+        padding: 0 1rem;
+        color: white;
+        background: var(--ocean-blue);
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: 0.2s ease;
+
+        &:hover {
+            opacity: 0.7;
+        }
+    }
 }
 
 .body-container {
@@ -263,98 +269,83 @@ const deleteProductWrapper = async (id: string) => {
     border-top: none;
     border-bottom-left-radius: 20px;
     border-bottom-right-radius: 20px;
-}
 
-.toolbar {
-    padding: 1rem;
-    display: flex;
-    justify-content: space-between;
-}
+    .toolbar {
+        padding: 1rem;
+        display: flex;
+        justify-content: space-between;
 
-.searchBar {
-    background: var(--gray);
-    width: 70%;
-    padding: 0 1rem;
-    border-radius: 15px;
-    position: relative;
-}
+        .searchBar {
+            background: var(--gray);
+            width: 70%;
+            padding: 0 1rem;
+            border-radius: 15px;
+            @extend .relative;
 
-.searchIcon {
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-}
+            .searchIcon {
+                @extend .absolute;
+                top: 50%;
+                transform: translateY(-50%);
+            }
 
-input[type='text'] {
-    line-height: 2rem;
-    font-size: 1rem;
-    padding: 0 1.5rem;
-    border: none;
-    outline: none;
-    background: none;
-    width: calc(100% - 1.5rem);
-}
+            input {
+                line-height: 2rem;
+                font-size: 1rem;
+                padding: 0 1.5rem;
+                border: none;
+                outline: none;
+                background: none;
+                width: calc(100% - 1.5rem);
+            }
+        }
 
-.filters {
-    display: flex;
-    gap: 10px;
-}
+        .filters {
+            display: flex;
+            gap: 10px;
 
-.filters .toggleBTN {
-    border: 1px solid var(--dark-gray);
-    border-radius: 10px;
-    cursor: pointer;
-    padding: 0.5rem 1rem;
-    background: var(--light-gray);
-}
+            .toggleBTN {
+                border: 1px solid var(--dark-gray);
+                border-radius: 10px;
+                cursor: pointer;
+                padding: 0.5rem 1rem;
+                background: var(--light-gray);
 
-.options {
-    min-width: 130px;
-    right: 0;
-    top: calc(100% + 5px);
-    z-index: 50;
-}
+                +.options {
+                    min-width: 130px;
+                    right: 0;
+                    top: calc(100% + 5px);
+                    z-index: 50;
 
-.options * {
-    text-align: center;
-    background: var(--gray);
-    padding: 0 5px;
-    cursor: pointer;
-    padding: 5px;
-}
+                    * {
+                        text-align: center;
+                        background: var(--gray);
+                        padding: 0 5px;
+                        cursor: pointer;
+                        padding: 5px;
 
-.options *:first-child {
-    border-top-left-radius: 10px;
-    border-top-right-radius: 10px;
-}
+                        &:first-child {
+                            border-top-left-radius: 10px;
+                            border-top-right-radius: 10px;
+                        }
 
-.options *:last-child {
-    border-bottom-left-radius: 10px;
-    border-bottom-right-radius: 10px;
-}
+                        &:last-child {
+                            border-bottom-left-radius: 10px;
+                            border-bottom-right-radius: 10px;
+                        }
 
-.options *.active {
-    background: var(--ocean-blue);
-    color: white;
-}
+                        &.active {
+                            background: var(--ocean-blue);
+                            color: white;
+                        }
 
-.options *:hover {
-    background: var(--dark-gray);
-}
-
-.addBTN {
-    font-size: 1rem;
-    padding: 0 1rem;
-    color: white;
-    background: var(--ocean-blue);
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: 0.2s ease;
-}
-
-.addBTN:hover {
-    opacity: 0.7;
+                        &:hover {
+                            background: var(--dark-gray);
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
 
 .productList {
@@ -362,22 +353,55 @@ input[type='text'] {
     grid-template-columns: 1;
     grid-auto-rows: 1fr;
     margin-top: 2rem;
-}
 
-.productContainer {
-    display: grid;
-    grid-template-columns: 200px auto 200px;
-    gap: 20px;
-    align-items: center;
-    border-bottom: 1px solid var(--grid-line);
-}
+    .productContainer {
+        display: grid;
+        grid-template-columns: 200px auto 200px;
+        gap: 20px;
+        align-items: center;
+        border-bottom: 1px solid var(--grid-line);
 
-.productContainer:first-of-type {
-    border-top: 1px solid var(--grid-line);
-}
+        &:first-of-type {
+            border-top: 1px solid var(--grid-line);
+        }
 
-.productImage {
-    padding: 0 10px;
+        .productImage {
+            padding: 0 10px;
+        }
+
+        .productImage,
+        .productInfo {
+            cursor: pointer;
+        }
+
+        .productBTN {
+            display: flex;
+            justify-self: center;
+            gap: 10px;
+
+            * {
+                font-weight: 500;
+                font-size: 1.1rem;
+                padding: 8px 12px;
+                border-radius: 10px;
+                border: none;
+                cursor: pointer;
+                transition: 0.2s ease;
+            }
+
+            *:hover {
+                opacity: 0.7;
+            }
+
+            .deleteBTN {
+                background: var(--color-red);
+            }
+
+            .editBTN {
+                background: var(--admin-edit-color);
+            }
+        }
+    }
 }
 
 .img-fluid {
@@ -386,82 +410,10 @@ input[type='text'] {
     max-height: 100%;
 }
 
-.productBTN {
-    display: flex;
-    justify-self: center;
-    gap: 10px;
-}
-
-.productBTN * {
-    font-weight: 500;
-    font-size: 1.1rem;
-    padding: 8px 12px;
-    border-radius: 10px;
-    border: none;
-    cursor: pointer;
-    transition: 0.2s ease;
-}
-
-.deleteBTN {
-    background: var(--color-red);
-}
-
-.editBTN {
-    background: var(--admin-edit-color);
-}
-
-.productBTN *:hover {
-    opacity: 0.7;
-}
-
-.pagination-outter,
-.pagination-container,
-.page-item {
-    display: flex;
-    justify-content: center;
-}
-
-.pagination-outter {
-    margin: 2rem 0;
-}
-
-.page-item {
-    align-items: center;
-    cursor: pointer;
-    font-size: 1rem;
-    border: 1px solid var(--dark-gray);
-    min-width: 30px;
-    padding: 5px;
-    min-height: 30px;
-    text-align: center;
-    color: var(--color-blue);
-}
-
-.page-item.disabled {
-    color: black;
-}
-
-.page-item.active {
-    background: var(--ocean-blue);
-    color: white;
-}
-
-.pagination-outter>.page-item:first-of-type {
-    border-top-left-radius: 10px;
-    border-bottom-left-radius: 10px;
-}
-
-.pagination-outter>.page-item:last-of-type {
-    border-top-right-radius: 10px;
-    border-bottom-right-radius: 10px;
-}
-
 .temp-text {
     width: 100%;
     min-height: 300px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    @extend .flex-center;
     font-size: 1.5rem;
     font-weight: bold;
 }

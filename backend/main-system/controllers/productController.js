@@ -43,11 +43,9 @@ const getProducts = asyncHandler(async (req, res) => {
     }
     let sort = {};
     if (req.query.price_sort) {
-        console.log(req.query.price_sort);
         const order = parseInt(req.query.price_sort);
         if (order === 1 || order === -1)
             sort.price = order;
-        console.log(sort);
     }
 
     const total = await Product.countDocuments(filter);
@@ -176,7 +174,7 @@ const postProduct = asyncHandler(async (req, res) => {
  * @route PUT /api/products/:id
  */
 const putProduct = asyncHandler(async (req, res) => {
-    if (req.body.overallRating){
+    if (req.body.overallRating) {
         res.status(403);
         throw new Error("Not allowed to change overall rating");
     }
@@ -187,9 +185,46 @@ const putProduct = asyncHandler(async (req, res) => {
         throw new Error("Product not found");
     }
 
-    // TODO update images
+    // update images
+    // update thumbnail (the first image)
+    let newThumbnail = null;
+    if (req.files && req.files.newThumbnail) {
+        let uploadedFile = req.files.newThumbnail;
+        newThumbnail = (await cloudinaryWrapper.uploadImages([uploadedFile.data], `products/${product.id}`))[0];
+    }
 
-    // TODO update images
+    // upload new images
+    let newImages = null;
+    if (req.files && req.files.newImages) {
+        let uploadedFiles = req.files.newImages;
+        if (!Array.isArray(uploadedFiles))
+            uploadedFiles = [uploadedFiles];
+        newImages = await cloudinaryWrapper.uploadImages(uploadedFiles.map(file => file.data), `products/${product.id}`);
+    }
+
+    let oldImages = req.body.oldImages;
+    if (oldImages) {
+        if (!Array.isArray(oldImages))
+            oldImages = [oldImages];
+
+        oldImages = oldImages.map(image => (JSON.parse(image)));
+    }
+
+    let finalImages = [];
+    if (newThumbnail) {
+        finalImages.push(newThumbnail);
+    }
+    finalImages = [...finalImages, ...oldImages];
+    if (newImages) {
+        finalImages = [...finalImages, ...newImages];
+    }
+
+    product.set('images', finalImages);
+    await product.save();
+
+    // delete images
+    if (req.body.deleting)
+        await cloudinaryWrapper.deleteResources(req.body.deleting);
 
     res.status(200).json(product);
 });
