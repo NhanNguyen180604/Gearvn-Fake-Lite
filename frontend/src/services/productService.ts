@@ -27,9 +27,7 @@ export const getProductById = async (id: string): Promise<Product | null> => {
 	return await response.json();
 };
 
-export const deleteProduct = async (id: string) => {
-	// get token here
-	const token = "";
+export const deleteProduct = async (id: string, token: string | null) => {
 	try {
 		const response = await axios.delete(API + `/${id}`, {
 			headers: {
@@ -54,9 +52,7 @@ export const deleteProduct = async (id: string) => {
 	}
 };
 
-export const postProduct = async (formData: FormData) => {
-	// get token here
-	const token = "";
+export const postProduct = async (formData: FormData, token: string | null) => {
 	try {
 		const response = await axios.post(API, formData, {
 			headers: {
@@ -82,9 +78,11 @@ export const postProduct = async (formData: FormData) => {
 	}
 };
 
-export const updateProduct = async (id: string, formData: FormData) => {
-	// get token here
-	const token = "";
+export const updateProduct = async (
+	id: string,
+	formData: FormData,
+	token: string | null
+) => {
 	try {
 		const response = await axios.put(API + `/${id}`, formData, {
 			headers: {

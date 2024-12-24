@@ -49,6 +49,7 @@ const pay = asyncHandler(async (req, res) => {
         city: city,
         district: district,
         street: street,
+        status: "Đang chờ",
     });
     await clearCartHelper(userId, false);
 
@@ -75,5 +76,5 @@ const pay = asyncHandler(async (req, res) => {
 });
 
 module.exports = {
-    pay,
+    pay
 };

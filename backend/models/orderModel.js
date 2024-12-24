@@ -2,6 +2,10 @@ const mongoose = require('mongoose');
 
 const orderSchema = new mongoose.Schema(
     {
+        idString: {
+            type: String,
+            default: '',
+        },
         // how to user if third party?
         user: {
             type: String,
@@ -55,6 +59,12 @@ const orderSchema = new mongoose.Schema(
             type: Number,
             default: 0,
         },
+        status: {
+            type: String,
+            required: true,
+            default: "Đang chờ",
+            enum: ["Đang chờ", "Đang giao", "Đã giao"],
+        }
     },
     {
         timestamps: true
@@ -67,6 +77,7 @@ orderSchema.pre('save', async function (next) {
         totalPrice += item.productPrice * item.quantity;
     }
     this.totalPrice = totalPrice;
+    this.idString = this._id.toString();
     next();
 });
 

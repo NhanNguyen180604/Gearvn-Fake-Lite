@@ -1,14 +1,15 @@
 const router = require('express').Router();
 const categoryController = require('../controllers/categoryController');
+const checkAdmin = require('../../middlewares/checkAdmin');
 
 // /api/categories
 router.route('/')
     .get(categoryController.getCategories)
-    .post(categoryController.postCategory);
+    .post(checkAdmin, categoryController.postCategory);
 
 router.route('/:name')
     .get(categoryController.getCategoryByName)
-    .put(categoryController.putCategory)
-    .delete(categoryController.deleteCategory);
+    .put(checkAdmin, categoryController.putCategory)
+    .delete(checkAdmin, categoryController.deleteCategory);
 
 module.exports = router;

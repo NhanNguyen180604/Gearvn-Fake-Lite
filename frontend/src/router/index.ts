@@ -3,7 +3,8 @@ import ManageProduct from "../components/ManageProduct.vue";
 import HelloWorld from "../components/HelloWorld.vue";
 import AdminView from "../views/AdminView.vue";
 import AddProductView from "../views/AddProductView.vue";
-import EditProduct from "../components/EditProduct.vue";
+import EditProductView from "../views/EditProductView.vue";
+import ManageOrder from "../components/ManageOrder.vue";
 
 export const router = createRouter({
 	history: createWebHistory(),
@@ -23,6 +24,26 @@ export const router = createRouter({
 					name: "adminManageProduct",
 					component: ManageProduct,
 				},
+				{
+					path: "orders",
+					name: "adminManageOrder",
+					component: ManageOrder,
+				},
+				{
+					path: "accounts",
+					name: "adminManageAccount",
+					component: HelloWorld,  // put manage account here
+				},
+				{
+					path: "statistics",
+					name: "adminStatistics",
+					component: HelloWorld,   // put statistics here, wtf is statistics
+				},
+				{
+					path: "categories",
+					name: "adminManageCategory",
+					component: HelloWorld,   // put manage categories here
+				}
 			],
 		},
 		{
@@ -41,7 +62,7 @@ export const router = createRouter({
 						{
 							path: "edit",
 							name: "productEdit",
-							component: EditProduct,
+							component: EditProductView,
 						},
 					],
 				},

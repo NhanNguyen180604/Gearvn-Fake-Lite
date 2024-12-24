@@ -10,13 +10,22 @@ import { type Product, type PreviewImage } from '../types/productType';
 import { onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import TwoColumnLayout from '../components/TwoColumnLayout.vue';
+import { useSession, useAuth } from '@clerk/vue';
+
+const { getToken } = useAuth();
+const { session } = useSession();
+const token = ref<string | null>(null);
 
 const router = useRouter();
 
 const categories = ref<Category[] | null>(null);
 const brands = ref<Brand[] | null>(null);
 
-const initialize = async () => {
+onMounted(async () => {
+    if (session.value)
+        token.value = await session.value.getToken({ template: 'test-template' });
+    else token.value = await getToken.value({ template: 'test-template' });
+
     const cateResponse = await getCategories();
     if (cateResponse) {
         categories.value = cateResponse;
@@ -34,7 +43,7 @@ const initialize = async () => {
     else {
         console.log("Couldn't get brands");
     }
-};
+});
 
 const product = ref<Product>({
     _id: '',
@@ -82,7 +91,7 @@ const removeImage = (index: number) => {
         URL.revokeObjectURL(images.value[index].objectURL);
         images.value = [...images.value.slice(0, index), ...images.value.slice(index + 1)];
     }
-}
+};
 
 const submitting = ref(false);
 const submit = async () => {
@@ -102,7 +111,8 @@ const submit = async () => {
         formData.append('images', image.file);
     });
 
-    const response = await postProduct(formData);
+
+    const response = await postProduct(formData, token.value);
     if (response.status === 201) {
         // free memory, dont be a p*ssy
         if (thumbnail.value) {
@@ -121,11 +131,7 @@ const submit = async () => {
     }
 
     submitting.value = false;
-}
-
-onMounted(async () => {
-    await initialize();
-});
+};
 
 const reset = () => {
     product.value = {
@@ -386,7 +392,7 @@ section {
         transition: 0.2s ease;
         cursor: pointer;
         border: none;
-        border-radius: 10px;
+        border-radius: 100px;
     }
 
     :not(:disabled):hover {

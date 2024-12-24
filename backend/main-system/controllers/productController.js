@@ -7,6 +7,15 @@ const cloudinaryWrapper = require('../others/cloudinaryWrapper');
 /**
  * Get products with pagination
  * @route GET /api/products?page={your_page}&per_page={your_per_page}
+ * @access public
+ * @query
+ * - `q` (string): the name of product
+ * - `category` (string) : the category name
+ * - `min_price` (number): the minimum price
+ * - `max_price` (number): the maximum price
+ * - `price_sort` (number): sort order of price, 0 for no sort, 1 for ascending, -1 for descending
+ * - `page` (number): page number
+ * - `per_page` (number): number of products per page
  */
 const getProducts = asyncHandler(async (req, res) => {
     let page = req.query.page || 1;
@@ -31,7 +40,7 @@ const getProducts = asyncHandler(async (req, res) => {
         filter.name = { $regex: req.query.q.trim(), $options: "i" };
     }
     if (req.query.category) {
-        filter.category = req.query.category;
+        filter.category = { $regex: req.query.category, $options: "i" };
     }
     if (req.query.min_price || !isNaN(parseInt(req.query.min_price))) {
         filter.price = {};

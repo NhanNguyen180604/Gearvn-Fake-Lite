@@ -1,14 +1,15 @@
 const router = require('express').Router();
 const productController = require('../controllers/productController');
+const checkAdmin = require('../../middlewares/checkAdmin');
 
 // /api/products
 router.route('/')
     .get(productController.getProducts)
-    .post(productController.postProduct);
+    .post(checkAdmin, productController.postProduct);
 
 router.route('/:id')
     .get(productController.getProductById)
-    .put(productController.putProduct)
-    .delete(productController.deleteProduct);
+    .put(checkAdmin, productController.putProduct)
+    .delete(checkAdmin, productController.deleteProduct);
 
 module.exports = router;

@@ -8,8 +8,18 @@ import { useRouter } from 'vue-router';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import { faSearch } from '@fortawesome/free-solid-svg-icons';
 import Pagination from './Pagination.vue';
+import { useSession, useAuth } from '@clerk/vue';
+
+const { getToken } = useAuth();
+const { session } = useSession();
+const token = ref<string | null>(null);
 
 const loading = ref(true);
+const error = ref({
+    error: false,
+    message: '',
+});
+
 const router = useRouter();
 const products = ref<Product[] | null>(null);
 const page = ref(1);
@@ -58,23 +68,44 @@ const fetchData = async (local_page: number, per_page: number) => {
             }
         }
         else {
-            console.log("Failed to fetch products")
+            error.value = {
+                error: true,
+                message: "Không thể dữ liệu sản phẩm",
+            };
         }
 
-    } catch (error) {
-        console.error('Failed to fetch products:', error);
+    } catch (err) {
+        error.value = {
+            error: true,
+            message: "Đã có lỗi, vui lòng thử lại",
+        };
     }
     loading.value = false;
 };
 
 onMounted(async () => {
-    await fetchData(page.value, perPage);
-    const cateResponse = await getCategories();
-    if (cateResponse) {
-        categories.value = cateResponse;
+    if (session.value)
+        token.value = await session.value.getToken({ template: 'test-template' });
+    else token.value = await getToken.value({ template: 'test-template' });
+    
+    if (token.value) {
+        await fetchData(page.value, perPage);
+        const cateResponse = await getCategories();
+        if (cateResponse) {
+            categories.value = cateResponse;
+        }
+        else {
+            error.value = {
+                error: true,
+                message: "Không thể lấy dữ liệu danh mục",
+            };
+        }
     }
     else {
-        console.log("Failed to fetch categories");
+        error.value = {
+            error: true,
+            message: "Không thể lấy token của admin",
+        };
     }
 });
 
@@ -82,6 +113,7 @@ watch([page, search], () => {
     debounce(() => fetchData(page.value, perPage), 300);
 }, { deep: true });
 
+// i need someone to fix this, might trigger bug
 let debounceTimeout: number | undefined;
 const debounce = (fn: Function, delay: number) => {
     clearTimeout(debounceTimeout);
@@ -99,6 +131,7 @@ const setCategoryFilter = (newCate: string) => {
     if (search.value.category !== newCate)
         search.value.category = newCate;
     else search.value.category = '';
+    showCateFilter.value = false;
 };
 
 const showPriceFilter = ref(false);
@@ -106,6 +139,7 @@ const setPriceFilter = (newPriceRange: number) => {
     if (search.value.price !== newPriceRange)
         search.value.price = newPriceRange;
     else search.value.price = -1;
+    showPriceFilter.value = false;
 };
 
 const showPriceSort = ref(false);
@@ -113,11 +147,12 @@ const setPriceSort = (newOrder: number) => {
     if (search.value.priceSort !== newOrder)
         search.value.priceSort = newOrder;
     else search.value.priceSort = 0;
+    showPriceSort.value = false;
 };
 
 const deleteProductWrapper = async (id: string) => {
     // console.log(id);
-    const response = await deleteProduct(id);
+    const response = await deleteProduct(id, token.value);
     if (response.status !== 200) {
         console.log('Failed to delete');
         console.log(response.message);
@@ -140,7 +175,8 @@ const deleteProductWrapper = async (id: string) => {
         </button>
     </div>
 
-    <div class="body-container">
+    <div v-if="error.error">{{ error.message }}</div>
+    <div class="body-container" v-else>
         <div class="toolbar">
             <div class="searchBar">
                 <FontAwesomeIcon :icon="faSearch" class="searchIcon" />
@@ -211,13 +247,14 @@ const deleteProductWrapper = async (id: string) => {
                     </div>
                 </div>
 
-                <Pagination @page-change="(new_page) => loadPage(new_page)" :page="page" :total-pages="totalPages"/>
+                <Pagination @page-change="(new_page) => loadPage(new_page)" :page="page" :total-pages="totalPages" />
             </div>
             <div v-else class="temp-text">
                 No products
             </div>
         </div>
     </div>
+
 </template>
 
 <style lang="scss" scoped>
@@ -265,11 +302,6 @@ const deleteProductWrapper = async (id: string) => {
 }
 
 .body-container {
-    border: 1px solid black;
-    border-top: none;
-    border-bottom-left-radius: 20px;
-    border-bottom-right-radius: 20px;
-
     .toolbar {
         padding: 1rem;
         display: flex;

@@ -7,6 +7,5 @@ router.route('/')
     .get(requireAuth({ signInUrl: '/login' }), cartController.getCart)
     .put(requireAuth({ signInUrl: '/login' }), cartController.putCart)
     .delete(requireAuth({ signInUrl: '/login' }), cartController.clearCart);
-
-
+    
 module.exports = router;

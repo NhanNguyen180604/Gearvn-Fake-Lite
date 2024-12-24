@@ -16,7 +16,7 @@ const initializeUser = async (req, res, next) => {
             await clerkClient.users.updateUserMetadata(userId, {
                 publicMetadata: {
                     ...user.publicMetadata,
-                    balance: 999999999,
+                    balance: 1000000000,
                 }
             });
         }

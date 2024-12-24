@@ -1,6 +1,6 @@
 <script lang="ts" setup>
-import TwoColumnLayout from './TwoColumnLayout.vue';
-import { getProductById, updateProduct } from '../services/productService';
+import TwoColumnLayout from '../components/TwoColumnLayout.vue';
+import { getProductById, updateProduct, deleteProduct } from '../services/productService';
 import { getCategories } from '../services/categoryService';
 import { getBrands } from '../services/brandService';
 import { type Product, type PreviewImage, type ProductImage } from '../types/productType';
@@ -10,9 +10,15 @@ import { ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import { faXmark } from '@fortawesome/free-solid-svg-icons';
+import { useSession, useAuth } from '@clerk/vue';
+
+const { getToken } = useAuth();
+const { session } = useSession();
+const token = ref<string | null>(null);
 
 const route = useRoute();
 const router = useRouter();
+const loading = ref(true);
 
 // use this to update
 const product = ref<Product | null>(null);
@@ -31,6 +37,13 @@ const error = ref(false);
 const errorMessage = ref('');
 
 const initialize = async () => {
+    if (!token.value) {
+        if (session.value)
+            token.value = await session.value.getToken({ template: 'test-template' });
+        else token.value = await getToken.value({ template: 'test-template' });
+    }
+
+    loading.value = true;
     const response = await getProductById(route.params.id as string);
     if (response) {
         // deepcopy to allow reset
@@ -62,6 +75,7 @@ const initialize = async () => {
         error.value = true;
         errorMessage.value = "Không thể lấy danh sách nhãn";
     }
+    loading.value = false;
 };
 
 watch(() => route.params.id, async () => {
@@ -147,7 +161,7 @@ const submit = async () => {
 
         deletingImages.value.forEach(image => formData.append('deleting', image));
 
-        const response = await updateProduct(route.params.id as string, formData);
+        const response = await updateProduct(route.params.id as string, formData, token.value);
         if (response.status === 200) {
             // free memory, dont be a p*ssy
             if (thumbnail.value && thumbnail.value.objectURL) {
@@ -170,19 +184,38 @@ const submit = async () => {
     }
 }
 
+const deleting = ref(false);
+const deleteProductWrapper = async (id: string) => {
+    deleting.value = true;
+
+    if (product.value) {
+        const response = await deleteProduct(id, token.value);
+        if (response.status === 200) {
+            router.push('/admin/products');
+        }
+        else {
+            console.log("Failed to delete product");
+            console.log(response);
+        }
+    }
+
+    deleting.value = false;
+}
+
 const canPost = () => {
     return product.value && product.value.name.trim().length
         && categories.value?.some(category => category.name === product.value?.category)
         && brands.value?.some(brand => brand.name === product.value?.brand)
         && product.value.price && product.value.stock
         && product.value.description.trim().length
-        && product.value.images.length && !submitting.value;
+        && product.value.images.length && !submitting.value && !deleting.value;
 };
 
 </script>
 
 <template>
-    <div v-if="error" class="errorMessage">
+    <div v-if="loading" class="temp-text">Đang tải...</div>
+    <div v-else-if="error" class="temp-text">
         <div>Đã có lỗi xảy ra trong lúc lấy dữ liệu.</div>
         <div>Vui lòng thử tải lại trang.</div>
         <div>{{ errorMessage }}</div>
@@ -201,7 +234,7 @@ const canPost = () => {
                 <input type="file" accept=".png, .jpg, .jpeg" @change="handleUploadThumbnail" @click="(e: Event) => {
                     const target = e.target as HTMLInputElement;
                     target.value = '';
-                }" :disabled="submitting">
+                }" :disabled="submitting || deleting">
             </label>
 
             <div class="otherImages">
@@ -217,17 +250,24 @@ const canPost = () => {
                 <input type="file" multiple accept=".png, .jpg, .jpeg" @change="handleUploadImages" @click="(e: Event) => {
                     const target = e.target as HTMLInputElement;
                     target.value = '';
-                }" :disabled="submitting">
+                }" :disabled="submitting || deleting">
             </label>
 
             <div class="actionBTNs">
-                <button class="resetBTN" @click.prevent="reset" :disabled="submitting">
+                <button class="resetBTN" @click.prevent="reset" :disabled="submitting || deleting">
                     Xóa các thay đổi
                 </button>
                 <button class="submitBTN" :disabled="!canPost()" @click.prevent="submit">
                     {{ submitting ? 'Đang cập nhật...' : "Cập nhật sản phẩm" }}
                 </button>
-                <button class="returnBTN" @click.prevent="() => router.push(`/admin/products`)" :disabled="submitting">
+                <button class="resetBTN" @click.prevent="async () => {
+                    if (product)
+                        await deleteProductWrapper(product._id)
+                }" :disabled="submitting || deleting">
+                    {{ deleting ? 'Đang xóa...' : 'Xóa sản phẩm' }}
+                </button>
+                <button class="returnBTN" @click.prevent="() => router.push(`/admin/products`)"
+                    :disabled="submitting || deleting">
                     Hủy và quay về
                 </button>
             </div>
@@ -236,18 +276,20 @@ const canPost = () => {
         <template v-slot:rightColumn>
             <section>
                 <label for="Name">Tên sản phẩm</label>
-                <input type="text" v-model="product.name" name="Name" id="Name" v-if="product" :disabled="submitting">
+                <input type="text" v-model="product.name" name="Name" id="Name" v-if="product"
+                    :disabled="submitting || deleting">
             </section>
 
             <section>
                 <label for="Price">Giá</label>
                 <input type="number" min="1" v-model="product.price" name="Price" id="Price" v-if="product"
-                    :disabled="submitting">
+                    :disabled="submitting || deleting">
             </section>
 
             <section>
                 <label for="Category">Danh mục</label>
-                <select v-model="product.category" name="Category" id="Category" v-if="product" :disabled="submitting">
+                <select v-model="product.category" name="Category" id="Category" v-if="product"
+                    :disabled="submitting || deleting">
                     <option v-for="category in categories" :key="category._id" :value="category.name">
                         {{ category.name }}
                     </option>
@@ -257,7 +299,8 @@ const canPost = () => {
             <section>
                 <label for="Brand">Hãng</label>
                 <select v-model="product.brand" name="Brand" id="Brand" v-if="product">
-                    <option v-for="brand in brands" :key="brand._id" :value="brand.name" :disabled="submitting">
+                    <option v-for="brand in brands" :key="brand._id" :value="brand.name"
+                        :disabled="submitting || deleting">
                         {{ brand.name }}
                     </option>
                 </select>
@@ -266,7 +309,7 @@ const canPost = () => {
             <section>
                 <label for="Stock">Số lượng tồn kho</label>
                 <input type="number" min="0" v-model="product.stock" name="Stock" id="Stock" v-if="product"
-                    :disabled="submitting">
+                    :disabled="submitting || deleting">
             </section>
 
             <section>
@@ -274,7 +317,7 @@ const canPost = () => {
                     Mô tả chi tiết
                 </label>
                 <textarea name="Description" id="Description" v-model="product.description" rows="5"
-                    :disabled="submitting" v-if="product"></textarea>
+                    :disabled="submitting || deleting" v-if="product"></textarea>
             </section>
         </template>
     </TwoColumnLayout>
@@ -285,15 +328,6 @@ const canPost = () => {
     display: flex;
     align-items: center;
     justify-content: center;
-}
-
-.errorMessage {
-    font-size: 2rem;
-    font-weight: 600;
-    text-align: center;
-    min-height: 600px;
-    @extend .flex-center;
-    flex-direction: column;
 }
 
 .img-fluid {
@@ -410,7 +444,7 @@ section {
         transition: 0.2s ease;
         cursor: pointer;
         border: none;
-        border-radius: 10px;
+        border-radius: 100px;
     }
 
     :not(:disabled):hover {
@@ -431,5 +465,12 @@ section {
         opacity: 0.3;
         cursor: not-allowed;
     }
+}
+
+.temp-text {
+    @extend .flex-center;
+    min-height: 200px;
+    font-size: 1.5rem;
+    font-weight: bold;
 }
 </style>
