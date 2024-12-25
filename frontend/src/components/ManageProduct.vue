@@ -87,7 +87,7 @@ onMounted(async () => {
     if (session.value)
         token.value = await session.value.getToken({ template: 'test-template' });
     else token.value = await getToken.value({ template: 'test-template' });
-    
+
     if (token.value) {
         await fetchData(page.value, perPage);
         const cateResponse = await getCategories();
@@ -247,7 +247,8 @@ const deleteProductWrapper = async (id: string) => {
                     </div>
                 </div>
 
-                <Pagination @page-change="(new_page) => loadPage(new_page)" :page="page" :total-pages="totalPages" />
+                <Pagination @page-change="(new_page) => loadPage(new_page)" :page="page" :total-pages="totalPages"
+                    :total="total" :per-page="perPage" />
             </div>
             <div v-else class="temp-text">
                 No products
@@ -385,6 +386,7 @@ const deleteProductWrapper = async (id: string) => {
     grid-template-columns: 1;
     grid-auto-rows: 1fr;
     margin-top: 2rem;
+    margin-bottom: 10px;
 
     .productContainer {
         display: grid;

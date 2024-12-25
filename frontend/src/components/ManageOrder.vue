@@ -57,7 +57,7 @@ onMounted(async () => {
     if (session.value)
         token.value = await session.value.getToken({ template: 'test-template' });
     else token.value = await getToken.value({ template: 'test-template' });
-    
+
     if (token.value)
         await fetchData(page.value, perPage);
     else {
@@ -170,7 +170,8 @@ const updateOrderStatusWrapper = async (id: string, status: string) => {
                     </tbody>
                 </table>
 
-                <Pagination :page="page" :total-pages="totalPages" @page-change="(new_page) => loadPage(new_page)" />
+                <Pagination @page-change="(new_page) => loadPage(new_page)" :page="page" :total-pages="totalPages"
+                    :total="total" :per-page="perPage" />
             </div>
         </div>
 
