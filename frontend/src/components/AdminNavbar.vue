@@ -9,7 +9,7 @@
     </nav>
 </template>
 
-<style lang="css" scoped>
+<style lang="scss" scoped>
 nav {
     background: var(--admin-header-color);
     margin-bottom: 0.5rem;
@@ -17,23 +17,24 @@ nav {
     align-items: center;
     gap: 1rem;
     padding: 0 1rem;
-}
 
-nav a{
-    color: white;
-    font-size: 1rem;
-    padding: 5px 10px;
-    margin: 5px;
-    border-radius: 10px;
-    transition: 0.2s ease;
-}
+    a {
+        color: white;
+        font-size: 1rem;
+        padding: 5px 10px;
+        margin: 5px;
+        border-radius: 10px;
+        transition: 0.2s ease;
+        text-decoration: none;
 
-nav a:hover,
-nav .router-link-active{
-    background: var(--admin-header-current-tab-color);
-}
+        &:hover,
+        &.router-link-active {
+            background: var(--admin-header-current-tab-color);
+        }
+    }
 
-nav .router-link-active{
-    color: var(--color-yellow);
+    .router-link-active {
+        color: var(--color-yellow);
+    }
 }
 </style>
