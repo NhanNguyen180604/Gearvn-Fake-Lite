@@ -5,6 +5,7 @@ import AdminView from "../views/AdminView.vue";
 import AddProductView from "../views/AddProductView.vue";
 import EditProductView from "../views/EditProductView.vue";
 import ManageOrder from "../components/ManageOrder.vue";
+import userView from "../views/UserView.vue";
 
 export const router = createRouter({
 	history: createWebHistory(),
@@ -12,7 +13,19 @@ export const router = createRouter({
 		{
 			path: "/",
 			name: "home",
-			component: HelloWorld,   // put home here
+			component: userView,   // put home here
+			children: [
+				{
+					path: '',
+					name: 'homeBody',
+					component: () => import('../components/homeBody.vue'),
+				},
+				{
+					path: "/products",
+					name:'productList',
+					 component: import('../components/userFilterCategory.vue')
+				}
+			]
 		},
 		{
 			path: "/admin",
