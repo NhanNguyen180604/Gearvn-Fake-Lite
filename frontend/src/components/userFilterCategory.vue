@@ -23,6 +23,7 @@
                 Giá
                 </button>
                 <ul class="dropdown-menu">
+                <li><button class="dropdown-item" @click="filterByPrice(0, null)">Tất cả</button></li>
                 <li><button class="dropdown-item" @click="filterByPrice(0, 500000)">Dưới 500k</button></li>
                 <li><button class="dropdown-item" @click="filterByPrice(500000, 1000000)">500k - 1 triệu</button></li>
                 <li><button class="dropdown-item" @click="filterByPrice(1000000, 3000000)">1 triệu - 3 triệu</button></li>
@@ -37,9 +38,13 @@
                 Thương hiệu
                 </button>
                 <ul class="dropdown-menu">
+                <li>
+                  <button class="dropdown-item" @click="filterByBrand('Tất cả')">Tất cả</button>
+                </li>
                 <li v-for="brand in brands" :key="brand">
                     <button class="dropdown-item" @click="filterByBrand(brand)">{{ brand }}</button>
                 </li>
+
                 </ul>
             </div>
 
@@ -79,22 +84,20 @@
     </div>
   </div>
 </template>
-
 <script lang="ts" setup>
 import { ref, computed, onMounted } from 'vue';
-import axios from 'axios';
 import Pagination from './Pagination.vue'; // Import the Pagination component
+import { getProducts } from '../services/productService'; // Import the service
 
 // Define the props for Pagination component
 const page = ref(1);
 const perPage = 12;
 const totalPages = ref(1);
-const total = ref(1000);
 
 const categories = ref<any[]>([]);
 const products = ref<any[]>([]);
 const brands = ref<string[]>([]);
-const activeCategory = ref<string>("Tất cả");
+const activeCategory = ref<string>('Tất cả');
 const minPrice = ref<number | null>(null);
 const maxPrice = ref<number | null>(null);
 const activeBrand = ref<string | null>(null);
@@ -106,17 +109,24 @@ onMounted(() => {
 });
 
 // Computed property for filtered products
+// Tính toán lại tổng số trang mỗi khi danh sách sản phẩm thay đổi
 const filteredProducts = computed(() => {
-  return products.value.filter((product) => {
-    const brandMatch = activeBrand.value ? product.brand === activeBrand.value : true;
+  const filtered = products.value.filter((product) => {
+    let brandMatch = activeBrand.value ? product.brand === activeBrand.value : true;
+    if (activeBrand.value == '') brandMatch = true;
     return brandMatch;
   });
+
+  // Cập nhật totalPages sau khi lọc sản phẩm
+  totalPages.value = Math.ceil(filtered.length / perPage);
+  return filtered;
 });
+
 
 // Function to load initial data
 const loadInitialData = async () => {
   const urlParams = new URLSearchParams(window.location.search);
-  activeCategory.value = urlParams.get("category") || "Tất cả";
+  activeCategory.value = urlParams.get('category') || 'Tất cả';
   await fetchCategories();
   await fetchProducts();
 };
@@ -124,32 +134,30 @@ const loadInitialData = async () => {
 // Function to fetch categories
 const fetchCategories = async () => {
   try {
-    const response = await axios.get("http://localhost:3000/api/categories");
-    categories.value = response.data;
+    const response = await fetch('http://localhost:3000/api/categories');
+    if (response.ok) {
+      categories.value = await response.json();
+    }
   } catch (error) {
-    console.error("Failed to fetch categories:", error);
+    console.error('Failed to fetch categories:', error);
   }
 };
 
 // Function to fetch products based on filters and pagination
 const fetchProducts = async () => {
-  const params = {
-    page: page.value,
-    per_page: perPage,
-    category: activeCategory.value !== "Tất cả" ? activeCategory.value : undefined,
-    min_price: minPrice.value || undefined,
-    max_price: maxPrice.value || undefined,
-    brand: activeBrand.value || undefined,
-    price_sort: priceSort.value || 0,
-  };
+  const category = activeCategory.value !== 'Tất cả' ? activeCategory.value : '';
+  const min = minPrice.value ?? 0;
+  const max = maxPrice.value ?? 999999999;
 
   try {
-    const response = await axios.get("http://localhost:3000/api/products", { params });
-    products.value = response.data.products;
-    totalPages.value = Math.ceil(response.data.total / perPage); // Calculate total pages based on the response
-    brands.value = [...new Set(products.value.map((product: any) => product.brand))]; // Unique brands
+    const response = await getProducts(page.value, perPage, '', category, min, max, priceSort.value);
+    if (response) {
+      products.value = response.products;
+      totalPages.value = Math.ceil(response.total / perPage); // Calculate total pages based on the response
+      brands.value = [...new Set(response.products.map((product: any) => product.brand))]; // Unique brands
+    }
   } catch (error) {
-    console.error("Failed to fetch products:", error);
+    console.error('Failed to fetch products:', error);
   }
 };
 
@@ -164,6 +172,8 @@ const loadPage = async (newPage: number) => {
 // Filter methods
 const filterByCategory = (categoryName: string) => {
   activeCategory.value = categoryName;
+  if (categoryName==='Tất cả')
+    activeBrand.value='';
   page.value = 1; // Reset to page 1 when filter is applied
   fetchProducts();
 };
@@ -176,9 +186,12 @@ const filterByPrice = (min: number | null, max: number | null) => {
 };
 
 const filterByBrand = (brandName: string) => {
-  activeBrand.value = brandName;
+  activeBrand.value= brandName==="Tất cả" ? '':brandName;
+  console.log(activeBrand.value);
+
   page.value = 1; // Reset to page 1 when filter is applied
   fetchProducts();
+
 };
 
 const sortByPrice = (order: number) => {
@@ -187,6 +200,7 @@ const sortByPrice = (order: number) => {
   fetchProducts();
 };
 </script>
+
 
 
 <style scoped>
