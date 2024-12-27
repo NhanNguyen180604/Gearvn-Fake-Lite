@@ -6,6 +6,9 @@ import AddProductView from "../views/AddProductView.vue";
 import EditProductView from "../views/EditProductView.vue";
 import ManageOrder from "../components/ManageOrder.vue";
 import userView from "../views/UserView.vue";
+import homeBody from "../components/homeBody.vue";
+import productList from "../components/userFilterCategory.vue";
+
 
 export const router = createRouter({
 	history: createWebHistory(),
@@ -18,12 +21,12 @@ export const router = createRouter({
 				{
 					path: '',
 					name: 'homeBody',
-					component: () => import('../components/homeBody.vue'),
+					component: homeBody,
 				},
 				{
 					path: "/products",
 					name:'productList',
-					 component: import('../components/userFilterCategory.vue')
+					component: productList,
 				}
 			]
 		},
