@@ -11,6 +11,25 @@ import { useRoute, useRouter } from 'vue-router';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import { faXmark } from '@fortawesome/free-solid-svg-icons';
 import { useSession, useAuth } from '@clerk/vue';
+import { useUser } from '@clerk/vue';
+import AdminOnly from '../components/AdminOnly.vue';
+
+const { user, isLoaded } = useUser();
+const loading = ref(true);
+const error = ref(false);
+watch(() => isLoaded.value, () => {
+    if (user.value) {
+        if (user.value.publicMetadata.role !== 'admin') {
+            error.value = true;
+            errorMessage.value = 'nuh uh';
+        }
+    }
+    else {
+        error.value = true;
+        errorMessage.value = 'nuh uh';
+    }
+    loading.value = false;
+});
 
 const { getToken } = useAuth();
 const { session } = useSession();
@@ -18,7 +37,6 @@ const token = ref<string | null>(null);
 
 const route = useRoute();
 const router = useRouter();
-const loading = ref(true);
 
 // use this to update
 const product = ref<Product | null>(null);
@@ -33,7 +51,6 @@ const initialImages = ref<ProductImage[]>([]);
 const categories = ref<Category[] | null>(null);
 const brands = ref<Brand[] | null>(null);
 
-const error = ref(false);
 const errorMessage = ref('');
 
 const initialize = async () => {
@@ -216,9 +233,14 @@ const canPost = () => {
 <template>
     <div v-if="loading" class="temp-text">Đang tải...</div>
     <div v-else-if="error" class="temp-text">
-        <div>Đã có lỗi xảy ra trong lúc lấy dữ liệu.</div>
-        <div>Vui lòng thử tải lại trang.</div>
-        <div>{{ errorMessage }}</div>
+        <div v-if="errorMessage === 'nuh uh'">
+            <AdminOnly />
+        </div>
+        <div v-else>
+            <div>Đã có lỗi xảy ra trong lúc lấy dữ liệu.</div>
+            <div>Vui lòng thử tải lại trang.</div>
+            <div>{{ errorMessage }}</div>
+        </div>
     </div>
     <TwoColumnLayout tag="form" v-else>
         <template v-slot:title>
@@ -469,8 +491,12 @@ section {
 
 .temp-text {
     @extend .flex-center;
-    min-height: 200px;
+    height: 80vh;
     font-size: 1.5rem;
     font-weight: bold;
+
+    *{
+        text-align: center;
+    }
 }
 </style>

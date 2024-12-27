@@ -7,10 +7,27 @@ import { postProduct } from '../services/productService';
 import { type Category } from '../types/categoryType';
 import { type Brand } from '../types/brandType';
 import { type Product, type PreviewImage } from '../types/productType';
-import { onMounted, ref } from 'vue';
+import { onMounted, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import TwoColumnLayout from '../components/TwoColumnLayout.vue';
 import { useSession, useAuth } from '@clerk/vue';
+import { useUser } from '@clerk/vue';
+import AdminOnly from '../components/AdminOnly.vue';
+
+const { user, isLoaded } = useUser();
+const loading = ref(!isLoaded.value);
+const error = ref(false);
+watch(() => isLoaded.value, () => {
+    if (user.value) {
+        if (user.value.publicMetadata.role !== 'admin') {
+            error.value = true;
+        }
+    }
+    else {
+        error.value = true;
+    }
+    loading.value = false;
+});
 
 const { getToken } = useAuth();
 const { session } = useSession();
@@ -169,7 +186,11 @@ const canPost = () => {
 </script>
 
 <template>
-    <TwoColumnLayout tag="form">
+    <div v-if="loading" class="temp-text">Đang tải...</div>
+    <div v-else-if="error">
+        <AdminOnly />
+    </div>
+    <TwoColumnLayout tag="form" v-else>
         <template v-slot:title>
             <h1>Thêm sản phẩm mới</h1>
         </template>
@@ -412,6 +433,17 @@ section {
     :disabled {
         opacity: 0.3;
         cursor: not-allowed;
+    }
+}
+
+.temp-text {
+    @extend .flex-center;
+    height: 80vh;
+    font-size: 1.5rem;
+    font-weight: bold;
+
+    * {
+        text-align: center;
     }
 }
 </style>
