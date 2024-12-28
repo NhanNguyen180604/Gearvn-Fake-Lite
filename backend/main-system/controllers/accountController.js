@@ -43,7 +43,7 @@ const getAccounts = asyncHandler(async (req, res) => {
         page,
         per_page,
         total_pages: Math.ceil(users.data.length / per_page),
-        tota: users.data.length
+        total: users.data.length
     });
 })
 
