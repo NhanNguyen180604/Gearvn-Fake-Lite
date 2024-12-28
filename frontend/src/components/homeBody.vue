@@ -61,7 +61,10 @@
                   {{ product.price }} vnđ<br />
                   Thương hiệu: {{ product.brand }} 
                 </p>
+                <RouterLink :to="`/products/${product._id}`" class="product-link">
+
                 <button class="btn btn-primary mt-auto">Thông tin chi tiết</button>
+                </RouterLink>
               </div>
             </div>
           </div>

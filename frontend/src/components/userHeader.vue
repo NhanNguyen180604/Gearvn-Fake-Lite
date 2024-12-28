@@ -11,7 +11,7 @@
 
             <!-- Search Bar -->
             <div class="d-flex flex-grow-1 justify-content-center mx-4">
-                <form @submit.prevent="handleSearch" class="d-flex w-75" role="search">
+                <form @submit.prevent="emitSearchInput" class="d-flex w-75" role="search">
                     <input
                         class="form-control px-4"
                         type="search"
@@ -23,28 +23,11 @@
 
             <!-- Right Section -->
             <div class="d-flex align-items-center">
-                <div class="d-flex align-items-center">
-                    <!-- Hiển thị nếu người dùng chưa đăng nhập -->
-                    <SignedOut>
-                        <SignInButton>
-                            <button
-                                class="btn btn-outline-dark me-2"
-                                style="background-color:var(--shop-signin-color)"
-                            >
-                                Đăng nhập
-                            </button>
-                        </SignInButton>
-                    </SignedOut>
-                    <SignedIn>
-                        <SignOutButton>
-                            <button
-                                class="btn btn-outline-dark me-2"
-                                style="background-color:var(--shop-signin-color)"
-                            >
-                                Đăng xuất
-                            </button>
-                        </SignOutButton>
-                    </SignedIn>
+                <!-- Hiển thị nếu người dùng chưa đăng nhập -->
+                <div v-if="!isLoggedIn" class="d-flex align-items-center">
+                    <RouterLink to="/login" class="btn btn-outline-dark me-2"
+                        style="background-color:var(--shop-signin-color)">Đăng nhập</RouterLink>
+                    <RouterLink to="/register" class="btn btn-dark me-2">Đăng ký</RouterLink>
                     <RouterLink to="/cart" class="text-dark d-flex align-items-center me-3">
                         <i class="bi bi-cart3 fs-4"></i>
                         <span class="ms-1">Giỏ hàng</span>
@@ -76,35 +59,52 @@
 </style>
 
 <script lang="ts" setup>
-import { SignedIn, SignedOut, SignInButton, SignOutButton } from '@clerk/vue';
-import { ref } from 'vue';
+import { useSession, useAuth } from '@clerk/vue';
+import { ref, onMounted } from 'vue';
+import { useRouter } from "vue-router";
+
+
+// Clerk hooks
+const { getToken } = useAuth();
+const { session } = useSession();
 
 // Reactive states
 const token = ref<string | null>(null); // Token xác thực (chuỗi hoặc null)
 
 // Tìm kiếm
 const searchInput = ref<string>(''); // Input tìm kiếm (chuỗi)
-const searchResults = ref<Array<any>>([]); // Kết quả tìm kiếm (mảng)
 
-// Xử lý tìm kiếm
-const handleSearch = async (): Promise<void> => {
-    if (searchInput.value.trim() === '') {
-        console.warn('Search input is empty.');
-        return;
-    }
+const router = useRouter(); // Khởi tạo Vue Router
 
+
+
+// Kiểm tra trạng thái đăng nhập
+const checkLoginStatus = async (): Promise<void> => {
     try {
-        const response = await fetch(`/api/search?query=${encodeURIComponent(searchInput.value)}`, {
-            headers: {
-                Authorization: `Bearer ${token.value}`,
-            },
-        });
-        if (!response.ok) {
-            throw new Error(`Search request failed with status ${response.status}`);
+        if (session.value) {
+            token.value = await session.value.getToken(); // Nếu session có giá trị
+        } else if (getToken.value) {
+            token.value = await getToken.value(); // Sử dụng .value để gọi hàm
         }
-        searchResults.value = await response.json();
+        isLoggedIn.value = !!token.value; // Gán trạng thái đăng nhập
     } catch (error) {
-        console.error('Search error:', error);
+        console.error('Failed to check login status:', error);
+        isLoggedIn.value = false; // Trạng thái không đăng nhập nếu lỗi xảy ra
+    }
+};
+
+// Tự động kiểm tra trạng thái đăng nhập khi component được mounted
+onMounted(async () => {
+    await checkLoginStatus();
+});
+
+// Emit search input
+const emitSearchInput = (): void => {
+    if (searchInput.value.trim() !== "") {
+        router.push({ 
+            name: "searchProduct", // Tên route trong cấu hình router
+            query: { query: searchInput.value.trim() } // Truyền query
+        });
     }
 };
 </script>
