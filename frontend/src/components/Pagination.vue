@@ -97,8 +97,8 @@ const goToPage = () => {
         border: 1px solid var(--dark-gray);
         @extend .flex-center;
         cursor: pointer;
-        min-width: 30px;
-        min-height: 30px;
+        min-width: 45px;
+        min-height: 45px;
         color: var(--color-blue);
         padding: 5px;
 
@@ -108,7 +108,6 @@ const goToPage = () => {
     }
 
     .page-arrow {
-        height: 100%;
         &:first-of-type {
             border-top-left-radius: 15px;
             border-bottom-left-radius: 15px;

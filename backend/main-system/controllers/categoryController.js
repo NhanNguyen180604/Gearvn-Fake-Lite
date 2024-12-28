@@ -83,7 +83,7 @@ const deleteCategory = asyncHandler(async (req, res) => {
     // delete all products of this category
     await Product.deleteMany({ category: category.name });
 
-    res.status(200).json(category);
+    res.status(200).json({ success: true });
 });
 
 module.exports = {

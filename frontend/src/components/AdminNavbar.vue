@@ -5,6 +5,7 @@
         <RouterLink to="/admin/orders">Quản lý đơn hàng</RouterLink>
         <RouterLink to="/admin/accounts">Quản lý tài khoản</RouterLink>
         <RouterLink to="/admin/categories">Quản lý danh mục</RouterLink>
+        <RouterLink to="/admin/brands">Quản lý hãng sản xuất</RouterLink>
         <RouterLink to="/admin/statistics">Thống kê</RouterLink>
     </nav>
 </template>

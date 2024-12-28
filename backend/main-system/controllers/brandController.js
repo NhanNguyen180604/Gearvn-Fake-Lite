@@ -84,7 +84,7 @@ const deleteBrand = asyncHandler(async (req, res) => {
     // delete all products of this brand
     await Product.deleteMany({ brand: brand.name });
 
-    res.status(200).json(brand);
+    res.status(200).json({ success: true });
 });
 
 module.exports = {
