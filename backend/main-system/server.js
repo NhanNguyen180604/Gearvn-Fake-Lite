@@ -33,6 +33,7 @@ app.use('/api/products', require('./routes/productRoutes'));
 app.use('/api/ratings', require('./routes/ratingRoutes'));
 app.use('/api/carts', require('./routes/cartRoutes'));
 app.use('/api/orders', require('./routes/orderRoutes'));
+app.use('/api/accounts', require('./routes/accountRoutes'));
 
 // error handling
 app.use(require('../middlewares/errorHandler'));
