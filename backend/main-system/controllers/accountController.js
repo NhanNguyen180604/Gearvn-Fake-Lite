@@ -45,25 +45,6 @@ const getAccounts = asyncHandler(async (req, res) => {
     });
 })
 
-/**
- * Add an account
- * @route POST /api/account
- * @access public
- */
-const addAccount = asyncHandler(async (req, res) => {
-    const { username, password } = req.body;
-    if (!username || !password)
-    {
-        res.status(400);
-        throw new Error("Please specify username and password");
-    }
-    await clerkClient.users.createUser({
-        username, password, publicMetadata: {
-            role: "user"
-        }
-    });
-})
-
 module.exports = {
-    getAccounts, addAccount
+    getAccounts
 }
