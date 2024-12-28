@@ -7,15 +7,20 @@
         <div v-if="filteredProducts.length > 0" class="products-container">
             <div class="product-list row row-cols-2 row-cols-md-4 g-3">
                 <div v-for="product in filteredProducts" :key="product._id" class="col">
-                    <div class="card h-100">
-                        <img :src="product.images[0]?.url" class="card-img-top" alt="Hình ảnh sản phẩm" />
-                        <div class="card-body">
+                    <div class="card h-100 d-flex flex-column">
+                        <img :src="product.images[0].url" class="card-img-top" alt="Hình ảnh sản phẩm" loading="lazy" />
+                        <div class="card-body d-flex flex-column">
                             <h6 class="card-title">{{ product.name }}</h6>
-                            <p class="card-text">{{ formatPrice(product.price) }}</p>
-                            <p class="card-text">Thương hiệu: {{ product.brand }}</p>
-                            <RouterLink :to="`/products/${product._id}`" class="product-link">
-                                <button class="btn btn-primary">Xem thông tin chi tiết</button>
-                            </RouterLink>
+                            <p class="card-text flex-grow-1 mb-1">
+                                Thương hiệu: {{ product.brand }}<br />
+                            </p>
+                            <p style="color:red">Giá: {{ formatPrice(product.price) }} </p>
+                            <!-- Chỉnh sửa để nút luôn nằm ở dưới -->
+                            <div class="mt-auto">
+                                <RouterLink :to="`/products/${product._id}`" class="product-link">
+                                    <button class="btn btn-primary w-100">Thông tin chi tiết</button>
+                                </RouterLink>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -69,7 +74,7 @@ const filteredProducts = computed(() => {
 // Hàm lấy danh sách sản phẩm từ dịch vụ
 const fetchProducts = async (): Promise<void> => {
     try {
-        const response = await getProducts(1,1000); // Gọi API để lấy tất cả sản phẩm
+        const response = await getProducts(1, 1000); // Gọi API để lấy tất cả sản phẩm
         products.value = response.products || []; // Lưu sản phẩm vào state
         console.log(response);
     } catch (error) {

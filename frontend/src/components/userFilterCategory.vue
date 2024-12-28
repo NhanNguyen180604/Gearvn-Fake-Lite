@@ -3,7 +3,7 @@
   <div style="background-color:white; margin:30px">
     <div>
         <!-- Bộ lọc -->
-        <div class="filters d-flex justify-content-between align-items-center mb-4">
+        <div class="filters d-flex justify-content-right align-items-center mb-4">
             <!-- Bộ lọc danh mục -->
             <div>
                 <button class="btn custom-btn dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
@@ -65,24 +65,29 @@
             <div v-for="product in filteredProducts" :key="product._id" class="col">
                 <div class="card h-100">
                 <img :src="product.images[0]?.url" class="card-img-top" alt="Hình ảnh sản phẩm" />
-                <div class="card-body">
+                  <div class="card-body d-flex flex-column">
                     <h6 class="card-title">{{ product.name }}</h6>
-                    <p class="card-text">{{ product.price }} VND</p>
-                    <p class="card-text">Thương hiệu: {{ product.brand }}</p>
-                    <RouterLink :to="`/products/${product._id}`" class="product-link">
-                    <button class="btn btn-primary">Xem thông tin chi tiết</button>
-                    </RouterLink>
-                </div>
+                    <p class="card-text flex-grow-1 mb-1" >
+                      Thương hiệu: {{ product.brand }}<br />
+                    </p>
+                    <p style="color:red">{{ formatPrice(product.price) }}</p>
+
+                    <!-- Chỉnh sửa để nút luôn nằm ở dưới -->
+                    <div class="mt-auto">
+                      <RouterLink :to="`/products/${product._id}`" class="product-link">
+                        <button class="btn btn-primary w-100">Thông tin chi tiết</button>
+                      </RouterLink>
+                    </div>
+                  </div>
                 </div>
             </div>
         </div>
-
-        <Pagination
-          :page="page"
-          :perPage="perPage"
-          :totalPages="totalPages"
-          @pageChange="loadPage"
-        />
+        
+        <div style="margin-top:20px">
+          <Pagination @page-change="(new_page) => loadPage(new_page)" :page="page" :total-pages="totalPages"
+            :per-page="perPage" 
+          />
+        </div>
 
     </div>
   </div>
@@ -122,9 +127,14 @@ const filteredProducts = computed(() => {
     return brandMatch;
   });
 
-  // Cập nhật totalPages sau khi lọc sản phẩm
-  totalPages.value = Math.ceil(filtered.length / perPage);
-  return filtered;
+   // Update totalPages after filtering
+   totalPages.value = Math.ceil(filtered.length / perPage);
+
+    // Apply pagination
+    const startIdx = (page.value - 1) * perPage;
+    const endIdx = startIdx + perPage;
+    return filtered.slice(startIdx, endIdx);
+
 });
 
 
@@ -155,7 +165,7 @@ const fetchProducts = async () => {
   const max = maxPrice.value ?? 999999999;
 
   try {
-    const response = await getProducts(page.value, perPage, '', category, min, max, priceSort.value);
+    const response = await getProducts(page.value, 10000, '', category, min, max, priceSort.value);
     if (response) {
       products.value = response.products;
       totalPages.value = Math.ceil(response.total / perPage); // Calculate total pages based on the response
@@ -166,13 +176,10 @@ const fetchProducts = async () => {
   }
 };
 
-// Handle page change event
-const loadPage = async (newPage: number) => {
-  if (newPage <= totalPages.value && newPage > 0 && newPage !== page.value) {
-    page.value = newPage;
-    await fetchProducts(); // Fetch products for the new page
-
-  }
+const loadPage = async (new_page: number) => {
+    if (new_page <= totalPages.value && new_page > 0 && new_page !== page.value) {
+        page.value = new_page;
+    }
 };
 
 // Filter methods
@@ -206,6 +213,9 @@ const sortByPrice = (order: number) => {
   priceSort.value = order;
   page.value = 1; // Reset to page 1 when sort is applied
   fetchProducts();
+};
+const formatPrice = (price: number) => {
+  return price.toLocaleString('vi-VN') + ' đ';
 };
 </script>
 

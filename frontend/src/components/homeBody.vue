@@ -26,9 +26,9 @@
     <!-- Danh sách sản phẩm theo từng danh mục -->
     <div v-for="(category, index) in filteredCategories" :key="category.title" class="product-carousel my-4"
     style=" margin: 20px">
-      <h5 class="d-flex justify-content-between align-items-center">
+      <h5 class="d-flex justify-content-between align-items-center" style="margin-left:20px;">
         {{ category.title }}
-        <a :href="`/products?category=${category.title}`" class="text-danger text-decoration-none">Xem thêm</a>
+        <a :href="`/products?category=${category.title}`" class="text-danger text-decoration-none" style="margin-right:20px;">Xem thêm</a>
       </h5>
 
       <!-- Kiểm tra nếu không có sản phẩm -->
@@ -53,22 +53,26 @@
             :key="pIndex"
             class="col"
           >
-            <div class="card h-100">
+            <div class="card h-100 d-flex flex-column">
               <img :src="product.images[0].url" class="card-img-top" alt="Hình ảnh sản phẩm" loading="lazy" />
               <div class="card-body d-flex flex-column">
                 <h6 class="card-title">{{ product.name }}</h6>
-                <p class="card-text mb-1">
-                  {{ product.price }} vnđ<br />
-                  Thương hiệu: {{ product.brand }} 
+                <p class="card-text flex-grow-1 mb-1" >
+                  Thương hiệu: {{ product.brand }}<br />
                 </p>
-                <RouterLink :to="`/products/${product._id}`" class="product-link">
-
-                <button class="btn btn-primary mt-auto">Thông tin chi tiết</button>
-                </RouterLink>
+                  <p style="color:red">Giá: {{ formatPrice(product.price) }}</p>
+                <!-- Chỉnh sửa để nút luôn nằm ở dưới -->
+                <div class="mt-auto">
+                  <RouterLink :to="`/products/${product._id}`" class="product-link">
+                    <button class="btn btn-primary w-100">Thông tin chi tiết</button>
+                  </RouterLink>
+                </div>
               </div>
             </div>
           </div>
         </div>
+
+
 
         <!-- Nút Phải -->
         <button
@@ -119,7 +123,6 @@ export default {
     // Lấy danh sách sản phẩm từ API
     async fetchProducts() {
     try {
-        this.categories = await this.fetchCategories(); // Lấy danh sách danh mục từ API
 
         const params = {
         page: 1, // Trang mặc định
@@ -203,6 +206,9 @@ export default {
         this.filteredCategories[categoryIndex].products.length
       )
         this.currentPages[categoryIndex]++;
+    },
+    formatPrice(price) {
+      return price.toLocaleString('vi-VN') + ' đ';
     },
   },
 };

@@ -5,24 +5,12 @@
       <div class="row my-4" style="background-color: white;">
         <!-- Image Gallery -->
         <div class="col-md-6">
-          <div class="image-gallery">
-            <img
-              :src="currentImage"
-              class="main-image img-fluid"
-              alt="Product Image"
-            />
-            <button
-              class="arrow left-arrow"
-              @click="prevImage"
-              aria-label="Previous Image"
-            >
+          <div class="image-gallery position-relative">
+            <img :src="currentImage" class="main-image img-fluid" alt="Product Image" />
+            <button class="arrow left-arrow" @click="prevImage" aria-label="Previous Image">
               ◀
             </button>
-            <button
-              class="arrow right-arrow"
-              @click="nextImage"
-              aria-label="Next Image"
-            >
+            <button class="arrow right-arrow" @click="nextImage" aria-label="Next Image">
               ▶
             </button>
           </div>
@@ -31,12 +19,10 @@
         <!-- Product Details -->
         <div v-if="product" class="col-md-6" style="margin-top: 20px">
           <h1 class="product-title">{{ product.name }}</h1>
-          <p class="product-brand">Brand: {{ product.brand }}</p>
-          <p class="product-price text-danger">{{ product.price }} đ</p>
-          <button
-            class="btn btn-danger btn-add-to-cart"
-            @click="addToCart(product.id)"
-          >
+          <p class="product-brand" style="font-size: 30px;">Thương hiệu: {{ product.brand }}</p>
+          <p class="card-text flex-grow-1 mb-1" style="color:red">{{ formatPrice(product.price) }}</p>
+
+          <button class="btn btn-danger btn-add-to-cart" @click="addToCart(product.id)">
             Thêm vào giỏ hàng
           </button>
         </div>
@@ -52,25 +38,22 @@
       <div class="similar-products-section my-4" style="background-color: white; padding: 10px">
         <h2>Gợi ý sản phẩm tương tự</h2>
         <div class="d-flex overflow-auto">
-          <div
-            v-for="similarProduct in similarProducts"
-            :key="similarProduct.id"
-            class="card mx-2"
-            style="width: 200px;"
-          >
-            <img
-              :src="similarProduct.images[0]?.url"
-              class="card-img-top"
-              alt="Similar Product Image"
-            />
-            <div class="card-body">
-              <h5 class="card-title">{{ similarProduct.name }}</h5>
-              <p class="card-text">
-                {{ similarProduct.price }} đ<br />
+          <div v-for="similarProduct in similarProducts" :key="similarProduct.id" class="card mx-2"
+            style="width: 200px;">
+            <img :src="similarProduct.images[0]?.url" class="card-img-top" alt="Similar Product Image" />
+            <div class="card-body d-flex flex-column">
+              <h6 class="card-title">{{ similarProduct.name }}</h6>
+              <p class="card-text flex-grow-1 mb-1">
+                Thương hiệu: {{ similarProduct.brand }}<br />
               </p>
-              <RouterLink :to="`/products/${similarProduct._id}`" class="product-link">
-                <button class="btn btn-primary">Thông tin chi tiết</button>
-              </RouterLink>
+              <p style="color:red">{{ formatPrice(similarProduct.price) }}</p>
+
+              <!-- Chỉnh sửa để nút luôn nằm ở dưới -->
+              <div class="mt-auto">
+                <RouterLink :to="`/products/${similarProduct._id}`" class="product-link">
+                  <button class="btn btn-primary w-100">Thông tin chi tiết</button>
+                </RouterLink>
+              </div>
             </div>
           </div>
         </div>
@@ -78,6 +61,58 @@
     </div>
   </div>
 </template>
+
+<style scoped>
+.image-gallery {
+  position: relative;
+}
+
+.main-image {
+  width: 100%;
+  /* Ensures image fills the container */
+  height: 400px;
+  /* Fixed height for consistency */
+  object-fit: cover;
+  /* Ensures aspect ratio is preserved while filling the space */
+}
+
+.arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background-color: rgba(0, 0, 0, 0.5);
+  color: white;
+  font-size: 30px;
+  border: none;
+  padding: 10px;
+  cursor: pointer;
+  z-index: 10;
+  border-radius: 30%;
+}
+
+.left-arrow {
+  left: 10px;
+}
+
+.right-arrow {
+  right: 10px;
+}
+
+.arrow:hover {
+  background-color: rgba(0, 0, 0, 0.8);
+}
+
+.card-img-top {
+  width: 100%;
+  /* Ensures image covers the container */
+  height: 200px;
+  /* Fixed height for all product images */
+  object-fit: cover;
+  /* Maintain aspect ratio while covering the space */
+}
+</style>
+
+
 <script lang="ts" setup>
 import { ref, onMounted, watch } from 'vue';
 import { useRoute } from 'vue-router';
@@ -94,7 +129,7 @@ const currentImage = ref<string>(''); // To hold the current image URL for the g
 // Function to fetch product details by ID
 const fetchProductDetails = async () => {
   try {
-const productId = route.params._id as string; // Ensure productId is treated as string
+    const productId = route.params._id as string; // Ensure productId is treated as string
 
     const response = await getProductById(productId); // Call service to fetch product by ID
     product.value = response; // Set product details
@@ -123,7 +158,7 @@ onMounted(async () => {
 // Watch for changes in the route and reload data
 watch(() => route.params._id, async (newProductId) => {
   // When route changes, fetch new product details and similar products
-  await fetchProductDetails(); 
+  await fetchProductDetails();
 });
 
 // Functions to navigate between product images
@@ -147,4 +182,8 @@ const nextImage = () => {
 const addToCart = (productId: string) => {
   // Add product to cart logic here
 };
+const formatPrice = (price: number) => {
+  return price.toLocaleString('vi-VN') + ' đ';
+};
+
 </script>
