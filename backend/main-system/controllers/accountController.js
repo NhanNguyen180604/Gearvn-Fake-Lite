@@ -31,7 +31,7 @@ const getAccounts = asyncHandler(async (req, res) => {
     const users = await clerkClient.users.getUserList({
         limit: per_page,
         offset: (page - 1) * per_page,
-        query: req.query.q
+        query: req.query.q,
     });
 
     res.status(200).json({
@@ -42,8 +42,8 @@ const getAccounts = asyncHandler(async (req, res) => {
         })),
         page,
         per_page,
-        total_pages: Math.ceil(users.data.length / per_page),
-        total: users.data.length
+        total_pages: Math.ceil(users.totalCount / per_page),
+        total: users.totalCount - 1,
     });
 })
 

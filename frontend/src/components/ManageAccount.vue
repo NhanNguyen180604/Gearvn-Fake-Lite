@@ -38,7 +38,7 @@ const fetchData = async (local_page: number, per_page: number) => {
             if (response.page !== page.value) {
                 page.value = response.page;
             }
-            console.log(accounts.value);
+            console.log(response);
         }
         else {
             error.value = {
@@ -90,6 +90,16 @@ const loadPage = async (new_page: number) => {
 
 const deleteAccountWrapper = async (id: string) => {
     const response = await deleteAccount(id, token.value);
+    if (response.status !== 200 || !response.data?.success) {
+        console.error("Failed to delete caccount");
+        if (response.message)
+            console.log(response.message);
+    }
+    else {
+        if (accounts.value) {
+            accounts.value = accounts.value.filter(account => account.id !== id);
+        }
+    }
 };
 
 </script>
@@ -117,14 +127,14 @@ const deleteAccountWrapper = async (id: string) => {
         <div v-else>
             <div v-if="accounts?.length">
                 <div class="accountList">
-                    <div v-for="account in accounts" class="accountContainer">
+                    <div v-for="account in accounts" class="accountContainer" :key="account.id">
                         <div class="accountInfo">
                             <div>ID: {{ account.id }}</div>
                             <div>Tên: {{ account.name }}</div>
                             <div>Role: {{ account.role }}</div>
                         </div>
                         <div class="accountBTN">
-                            <button class="deleteBTN">Xóa</button>
+                            <button class="deleteBTN" @click="deleteAccountWrapper(account.id)">Xóa</button>
                         </div>
                     </div>
                 </div>
