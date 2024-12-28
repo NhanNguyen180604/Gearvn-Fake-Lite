@@ -69,18 +69,21 @@
                     <h6 class="card-title">{{ product.name }}</h6>
                     <p class="card-text">{{ product.price }} VND</p>
                     <p class="card-text">Thương hiệu: {{ product.brand }}</p>
-                    <button class="btn btn-primary">Mua ngay</button>
+                    <RouterLink :to="`/products/${product._id}`" class="product-link">
+                    <button class="btn btn-primary">Xem thông tin chi tiết</button>
+                    </RouterLink>
                 </div>
                 </div>
             </div>
         </div>
 
-        <!-- Component phân trang -->
         <Pagination
-        :page="page"
-        :totalPages="totalPages"
-        @page-change="(new_page) => loadPage(new_page)" 
+          :page="page"
+          :perPage="perPage"
+          :totalPages="totalPages"
+          @pageChange="loadPage"
         />
+
     </div>
   </div>
 </template>
@@ -168,6 +171,7 @@ const loadPage = async (newPage: number) => {
   if (newPage <= totalPages.value && newPage > 0 && newPage !== page.value) {
     page.value = newPage;
     await fetchProducts(); // Fetch products for the new page
+
   }
 };
 
@@ -178,6 +182,8 @@ const filterByCategory = (categoryName: string) => {
     activeBrand.value='';
   page.value = 1; // Reset to page 1 when filter is applied
   fetchProducts();
+    console.log("total",  totalPages.value)
+    console.log("per_page:", perPage)
 };
 
 const filterByPrice = (min: number | null, max: number | null) => {

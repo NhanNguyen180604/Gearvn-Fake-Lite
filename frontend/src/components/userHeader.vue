@@ -11,7 +11,7 @@
 
             <!-- Search Bar -->
             <div class="d-flex flex-grow-1 justify-content-center mx-4">
-                <form @submit.prevent="handleSearch" class="d-flex w-75" role="search">
+                <form @submit.prevent="emitSearchInput" class="d-flex w-75" role="search">
                     <input
                         class="form-control px-4"
                         type="search"
@@ -66,6 +66,8 @@
 <script lang="ts" setup>
 import { useSession, useAuth } from '@clerk/vue';
 import { ref, onMounted } from 'vue';
+import { useRouter } from "vue-router";
+
 
 // Clerk hooks
 const { getToken } = useAuth();
@@ -77,7 +79,10 @@ const token = ref<string | null>(null); // Token xác thực (chuỗi hoặc nul
 
 // Tìm kiếm
 const searchInput = ref<string>(''); // Input tìm kiếm (chuỗi)
-const searchResults = ref<Array<any>>([]); // Kết quả tìm kiếm (mảng)
+
+const router = useRouter(); // Khởi tạo Vue Router
+
+
 
 // Kiểm tra trạng thái đăng nhập
 const checkLoginStatus = async (): Promise<void> => {
@@ -99,25 +104,13 @@ onMounted(async () => {
     await checkLoginStatus();
 });
 
-// Xử lý tìm kiếm
-const handleSearch = async (): Promise<void> => {
-    if (searchInput.value.trim() === '') {
-        console.warn('Search input is empty.');
-        return;
-    }
-
-    try {
-        const response = await fetch(`/api/search?query=${encodeURIComponent(searchInput.value)}`, {
-            headers: {
-                Authorization: `Bearer ${token.value}`,
-            },
+// Emit search input
+const emitSearchInput = (): void => {
+    if (searchInput.value.trim() !== "") {
+        router.push({ 
+            name: "searchProduct", // Tên route trong cấu hình router
+            query: { query: searchInput.value.trim() } // Truyền query
         });
-        if (!response.ok) {
-            throw new Error(`Search request failed with status ${response.status}`);
-        }
-        searchResults.value = await response.json();
-    } catch (error) {
-        console.error('Search error:', error);
     }
 };
 </script>

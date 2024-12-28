@@ -24,7 +24,12 @@
     "mongoose": "^8.9.0"
   },
   "devDependencies": {
+    "@types/cors": "^2.8.17",
+    "@types/express": "^5.0.0",
+    "@types/express-fileupload": "^1.5.1",
+    "@types/node": "^22.10.2",
     "concurrently": "^9.1.0",
-    "nodemon": "^3.1.9"
+    "nodemon": "^3.1.9",
+    "typescript": "^5.7.2"
   }
 }
