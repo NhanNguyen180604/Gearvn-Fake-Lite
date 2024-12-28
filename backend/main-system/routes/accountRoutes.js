@@ -6,4 +6,7 @@ const checkAdmin = require('../../middlewares/checkAdmin');
 router.route('/')
     .get(checkAdmin, accountController.getAccounts)
 
+router.route('/:id')
+    .delete(checkAdmin, accountController.deleteAccount)
+
 module.exports = router;

@@ -47,6 +47,18 @@ const getAccounts = asyncHandler(async (req, res) => {
     });
 })
 
+/**
+ * Get accounts
+ * @route DELETE /api/accounts/:id
+ * @access admin only
+ */
+const deleteAccount = asyncHandler(async (req, res) => {
+    let id = req.params.id;
+    await clerkClient.users.deleteUser(id);
+    res.status(200).json({ success: true });
+})
+
 module.exports = {
-    getAccounts
+    getAccounts,
+    deleteAccount
 }
