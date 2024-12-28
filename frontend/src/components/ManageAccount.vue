@@ -23,35 +23,56 @@ const page = ref(1);
 const perPage = 5;
 const totalPages = ref(100);
 const total = ref(1000);
-const accounts = ref<Account[] | null>(null);
+const accounts = ref<Account[] | null>([
+    {
+        id: '123',
+        name: 'Nhan',
+        role: 'user',
+    },
+    {
+        id: '456',
+        name: 'Lac',
+        role: 'user',
+    },
+    {
+        id: '789',
+        name: 'Long',
+        role: 'user',
+    },
+    {
+        id: '123456',
+        name: 'Thuy',
+        role: 'user',
+    },
+]);
 const search = ref<string>('');
 
 const fetchData = async (local_page: number, per_page: number) => {
-    loading.value = true;
-    try {
-        const response = await getAccounts(local_page, per_page);
-        if (response) {
-            accounts.value = response.users;
-            totalPages.value = response.total_pages;
-            total.value = response.total;
+    // loading.value = true;
+    // try {
+    //     const response = await getAccounts(local_page, per_page, search.value);
+    //     if (response) {
+    //         accounts.value = response.users;
+    //         totalPages.value = response.total_pages;
+    //         total.value = response.total;
 
-            if (response.page !== page.value) {
-                page.value = response.page;
-            }
-            console.log(accounts.value);
-        }
-        else {
-            error.value = {
-                error: true,
-                message: "Không thể tài khoản",
-            }
-        }
-    } catch (err) {
-        error.value = {
-            error: true,
-            message: "Đã có lỗi, vui lòng thử lại",
-        };
-    }
+    //         if (response.page !== page.value) {
+    //             page.value = response.page;
+    //         }
+    //         console.log(accounts.value);
+    //     }
+    //     else {
+    //         error.value = {
+    //             error: true,
+    //             message: "Không thể tài khoản",
+    //         }
+    //     }
+    // } catch (err) {
+    //     error.value = {
+    //         error: true,
+    //         message: "Đã có lỗi, vui lòng thử lại",
+    //     };
+    // }
     loading.value = false;
 };
 
@@ -65,6 +86,9 @@ onMounted(async () => {
             error: true,
             message: "Không thể lấy token của admin",
         };
+    }
+    else {
+        await fetchData(page.value, perPage);
     }
 });
 
@@ -108,8 +132,26 @@ const loadPage = async (new_page: number) => {
             Đang tải...
         </div>
         <div v-else>
-            <!-- <Pagination @page-change="(new_page) => loadPage(new_page)" :page="page" :total-pages="totalPages"
-                :per-page="perPage" /> -->
+            <div v-if="accounts?.length">
+                <div class="accountList">
+                    <div v-for="account in accounts" class="accountContainer">
+                        <div class="accountInfo">
+                            <div>ID: {{ account.id }}</div>
+                            <div>Tên: {{ account.name }}</div>
+                            <div>Role: {{ account.role }}</div>
+                        </div>
+                        <div class="accountBTN">
+                            <button>Xóa</button>
+                        </div>
+                    </div>
+                </div>
+
+                <Pagination @page-change="(new_page) => loadPage(new_page)" :page="page" :total-pages="totalPages"
+                    :per-page="perPage" />
+            </div>
+            <div v-else class="temp-text">
+                Không có tài khoản
+            </div>
         </div>
     </div>
 
@@ -186,6 +228,63 @@ const loadPage = async (new_page: number) => {
                 outline: none;
                 background: none;
                 width: calc(100% - 1.5rem);
+            }
+        }
+    }
+}
+
+.accountList {
+    display: grid;
+    grid-template-columns: 1;
+    grid-auto-rows: 1fr;
+    margin-top: 2rem;
+    margin-bottom: 10px;
+
+    .accountContainer {
+        display: grid;
+        grid-template-columns: 200px auto 200px;
+        gap: 20px;
+        align-items: center;
+        border-bottom: 1px solid var(--grid-line);
+
+        &:first-of-type {
+            border-top: 1px solid var(--grid-line);
+        }
+
+        .accountImage {
+            padding: 0 10px;
+        }
+
+        .accountImage,
+        .accountInfo {
+            cursor: pointer;
+        }
+
+        .accountBTN {
+            display: flex;
+            justify-self: center;
+            gap: 10px;
+
+            * {
+                font-weight: 500;
+                font-size: 1.1rem;
+                padding: 8px 12px;
+                border-radius: 10px;
+                border: none;
+                cursor: pointer;
+                transition: 0.2s ease;
+            }
+
+            *:hover {
+                opacity: 0.7;
+            }
+
+            .deleteBTN {
+                background: var(--color-red);
+            }
+
+            .editBTN {
+                background: var(--admin-edit-color);
             }
         }
     }

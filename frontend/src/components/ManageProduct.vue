@@ -251,7 +251,7 @@ const deleteProductWrapper = async (id: string) => {
                     :per-page="perPage" />
             </div>
             <div v-else class="temp-text">
-                No products
+                Không có sản phẩm
             </div>
         </div>
     </div>
