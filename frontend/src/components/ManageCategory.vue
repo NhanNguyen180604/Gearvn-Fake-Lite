@@ -1,48 +1,39 @@
 <script lang="ts" setup>
 import { onMounted, ref, watch } from 'vue';
-import { getAccounts, deleteAccount } from '../services/accountService';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import { faSearch } from '@fortawesome/free-solid-svg-icons';
-import { type Account } from "../types/accountType";
-import Pagination from './Pagination.vue';
+import { getCategories, deleteCategory } from '../services/categoryService';
+import { type Category } from '../types/categoryType';
+import { useRouter } from 'vue-router';
 import { useSession, useAuth } from '@clerk/vue';
 
 const { getToken } = useAuth();
 const { session } = useSession();
 const token = ref<string | null>(null);
 
+const router = useRouter();
 const loading = ref(true);
 const error = ref({
     error: false,
     message: '',
 });
 
-const page = ref(1);
-const perPage = 2;
-const totalPages = ref(100);
-const total = ref(1000);
-const accounts = ref<Account[] | null>([]);
-const search = ref<string>('');
+const search = ref('');
+const realSearch = ref('');
+const categories = ref<Category[]>([]);
 
-const fetchData = async (local_page: number, per_page: number) => {
+const fetchData = async () => {
     loading.value = true;
     try {
-        const response = await getAccounts(local_page, per_page, search.value, token.value);
-        if (response) {
-            accounts.value = response.users;
-            totalPages.value = response.total_pages;
-            total.value = response.total;
-
-            if (response.page !== page.value) {
-                page.value = response.page;
-            }
-            console.log(response);
+        const cateResponse = await getCategories();
+        if (cateResponse) {
+            categories.value = cateResponse;
         }
         else {
             error.value = {
                 error: true,
-                message: "Không thể lấy tài khoản",
-            }
+                message: "Không thể lấy dữ liệu danh mục",
+            };
         }
     } catch (err) {
         error.value = {
@@ -65,12 +56,14 @@ onMounted(async () => {
         };
     }
     else {
-        await fetchData(page.value, perPage);
+        await fetchData();
     }
 });
 
-watch([page, search], () => {
-    debounce(() => fetchData(page.value, perPage), 300);
+watch([search], () => {
+    debounce(() => {
+        realSearch.value = search.value;
+    }, 300);
 });
 
 // i need someone to fix this, might trigger bug
@@ -80,23 +73,15 @@ const debounce = (fn: Function, delay: number) => {
     debounceTimeout = setTimeout(fn, delay);
 };
 
-const loadPage = async (new_page: number) => {
-    if (new_page <= totalPages.value && new_page > 0 && new_page !== page.value) {
-        page.value = new_page;
-    }
-};
-
-const deleteAccountWrapper = async (id: string) => {
-    const response = await deleteAccount(id, token.value);
+const deleteCategoryWrapper = async (name: string) => {
+    const response = await deleteCategory(name, token.value);
     if (response.status !== 200 || !response.data?.success) {
         console.error("Failed to delete caccount");
         if (response.message)
             console.log(response.message);
     }
     else {
-        if (accounts.value) {
-            accounts.value = accounts.value.filter(account => account.id !== id);
-        }
+        categories.value = categories.value.filter(category => category.name !== name);
     }
 };
 
@@ -104,7 +89,10 @@ const deleteAccountWrapper = async (id: string) => {
 
 <template>
     <div class="header">
-        <span>Quản lý tài khoản</span>
+        <span>Quản lý danh mục</span>
+        <button @click="() => router.push('/admin/categories/new')">
+            Thêm
+        </button>
     </div>
 
     <div v-if="error.error">{{ error.message }}</div>
@@ -112,7 +100,7 @@ const deleteAccountWrapper = async (id: string) => {
         <div class="toolbar">
             <div class="searchBar">
                 <FontAwesomeIcon :icon="faSearch" class="searchIcon" />
-                <input type="text" v-model="search" placeholder="Tìm kiếm người dùng">
+                <input type="text" v-model="search" placeholder="Tìm kiếm danh mục">
             </div>
         </div>
 
@@ -120,25 +108,14 @@ const deleteAccountWrapper = async (id: string) => {
             Đang tải...
         </div>
         <div v-else>
-            <div v-if="accounts?.length">
-                <div class="accountList">
-                    <div v-for="account in accounts" class="accountContainer" :key="account.id">
-                        <div class="accountInfo">
-                            <div>ID: {{ account.id }}</div>
-                            <div>Tên: {{ account.name }}</div>
-                            <div>Role: {{ account.role }}</div>
-                        </div>
-                        <div class="accountBTN" v-if="account.role !== 'admin'">
-                            <button class="deleteBTN" @click="deleteAccountWrapper(account.id)">Xóa</button>
-                        </div>
+            <div v-if="categories.length" class="gridContainer">
+                <div
+                    v-for="category in categories.filter(cate => cate.name.toLowerCase().match(realSearch.toLowerCase()))">
+                    <div class="nameContainer">{{ category.name }}</div>
+                    <div class="btnContainer">
+                        <button @click="deleteCategoryWrapper(category.name)">Xóa</button>
                     </div>
                 </div>
-
-                <Pagination @page-change="(new_page) => loadPage(new_page)" :page="page" :total-pages="totalPages"
-                    :per-page="perPage" />
-            </div>
-            <div v-else class="temp-text">
-                Không có tài khoản
             </div>
         </div>
     </div>
@@ -171,6 +148,21 @@ const deleteAccountWrapper = async (id: string) => {
     span {
         font-weight: bold;
         font-size: 2rem;
+    }
+
+    button {
+        font-size: 1rem;
+        padding: 0 1rem;
+        color: white;
+        background: var(--ocean-blue);
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: 0.2s ease;
+
+        &:hover {
+            opacity: 0.7;
+        }
     }
 }
 
@@ -206,54 +198,51 @@ const deleteAccountWrapper = async (id: string) => {
     }
 }
 
-.accountList {
+.gridContainer {
     display: grid;
-    grid-template-columns: 1;
-    grid-auto-rows: 1fr;
-    margin-top: 2rem;
-    margin-bottom: 10px;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 20px;
+    padding: 1rem;
 
-    .accountContainer {
-        display: grid;
-        grid-template-columns: auto 200px;
-        gap: 20px;
-        align-items: center;
-        border-bottom: 1px solid var(--grid-line);
+    @media screen and (max-width: 768px) {
+        grid-template-columns: repeat(3, 1fr);
+    }
 
-        &:first-of-type {
-            border-top: 1px solid var(--grid-line);
-        }
+    @media screen and (max-width: 500px) {
+        grid-template-columns: repeat(2, 1fr);
+    }
 
-        .accountInfo {
-            cursor: pointer;
-            margin-left: 3rem;
-        }
+    >* {
+        text-align: center;
+        padding: 1rem 0.5rem;
+        background-color: var(--shop-header-color);
+        border-radius: 1rem;
+    }
 
-        .accountBTN {
-            display: flex;
-            justify-self: center;
-            gap: 10px;
+    .nameContainer {
+        font-size: 1.2rem;
+        margin-bottom: 0.5rem;
+    }
 
-            * {
-                font-weight: 500;
-                font-size: 1.1rem;
-                padding: 8px 12px;
-                border-radius: 10px;
-                border: none;
-                cursor: pointer;
-                transition: 0.2s ease;
-            }
+    .btnContainer {
+        @extend .flex-center;
+        flex-direction: column;
+        gap: 5px;
+        padding: 5px;
 
-            *:hover {
+        * {
+            width: 100%;
+            border: none;
+            transition: 0.2s ease;
+            font-weight: bold;
+            border-radius: 10px;
+
+            &:hover {
                 opacity: 0.7;
             }
 
-            .deleteBTN {
+            &:first-of-type {
                 background: var(--color-red);
-            }
-
-            .editBTN {
-                background: var(--admin-edit-color);
             }
         }
     }
