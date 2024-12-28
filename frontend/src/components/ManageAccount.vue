@@ -1,0 +1,201 @@
+<script lang="ts" setup>
+import { onMounted, ref, watch } from 'vue';
+import { getAccounts } from '../services/accountService';
+import { useRouter } from 'vue-router';
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
+import { faSearch } from '@fortawesome/free-solid-svg-icons';
+import { type Account } from "../types/accountType";
+import Pagination from './Pagination.vue';
+import { useSession, useAuth } from '@clerk/vue';
+
+const { getToken } = useAuth();
+const { session } = useSession();
+const token = ref<string | null>(null);
+
+const loading = ref(true);
+const error = ref({
+    error: false,
+    message: '',
+});
+
+const router = useRouter();
+const page = ref(1);
+const perPage = 5;
+const totalPages = ref(100);
+const total = ref(1000);
+const accounts = ref<Account[] | null>(null);
+const search = ref<string>('');
+
+const fetchData = async (local_page: number, per_page: number) => {
+    loading.value = true;
+    try {
+        const response = await getAccounts(local_page, per_page);
+        if (response) {
+            accounts.value = response.users;
+            totalPages.value = response.total_pages;
+            total.value = response.total;
+
+            if (response.page !== page.value) {
+                page.value = response.page;
+            }
+            console.log(accounts.value);
+        }
+        else {
+            error.value = {
+                error: true,
+                message: "Không thể tài khoản",
+            }
+        }
+    } catch (err) {
+        error.value = {
+            error: true,
+            message: "Đã có lỗi, vui lòng thử lại",
+        };
+    }
+    loading.value = false;
+};
+
+onMounted(async () => {
+    if (session.value)
+        token.value = await session.value.getToken({ template: 'test-template' });
+    else token.value = await getToken.value({ template: 'test-template' });
+
+    if (!token.value) {
+        error.value = {
+            error: true,
+            message: "Không thể lấy token của admin",
+        };
+    }
+});
+
+watch(page, () => {
+    debounce(() => fetchData(page.value, perPage), 300);
+});
+
+// i need someone to fix this, might trigger bug
+let debounceTimeout: number | undefined;
+const debounce = (fn: Function, delay: number) => {
+    clearTimeout(debounceTimeout);
+    debounceTimeout = setTimeout(fn, delay);
+};
+
+const loadPage = async (new_page: number) => {
+    if (new_page <= totalPages.value && new_page > 0 && new_page !== page.value) {
+        page.value = new_page;
+    }
+};
+
+</script>
+
+<template>
+    <div class="header">
+        <span>Quản lý sản phẩm</span>
+        <button @click="() => router.push('/products/new')">
+            Thêm
+        </button>
+    </div>
+
+    <div v-if="error.error">{{ error.message }}</div>
+    <div class="body-container" v-else>
+        <div class="toolbar">
+            <div class="searchBar">
+                <FontAwesomeIcon :icon="faSearch" class="searchIcon" />
+                <input type="text" v-model="search" placeholder="Tìm kiếm người dùng">
+            </div>
+        </div>
+
+        <div v-if="loading" class="temp-text">
+            Đang tải...
+        </div>
+        <div v-else>
+            <!-- <Pagination @page-change="(new_page) => loadPage(new_page)" :page="page" :total-pages="totalPages"
+                :per-page="perPage" /> -->
+        </div>
+    </div>
+
+</template>
+
+<style lang="scss" scoped>
+.flex-center {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.relative {
+    position: relative;
+}
+
+.absolute {
+    position: absolute;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.5rem 1rem;
+    border: 1px solid black;
+    border-top-left-radius: 20px;
+    border-top-right-radius: 20px;
+
+    span {
+        font-weight: bold;
+        font-size: 2rem;
+    }
+
+    button {
+        font-size: 1rem;
+        padding: 0 1rem;
+        color: white;
+        background: var(--ocean-blue);
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: 0.2s ease;
+
+        &:hover {
+            opacity: 0.7;
+        }
+    }
+}
+
+.body-container {
+    .toolbar {
+        padding: 1rem;
+        display: flex;
+        justify-content: space-between;
+
+        .searchBar {
+            background: var(--gray);
+            width: 70%;
+            padding: 0 1rem;
+            border-radius: 15px;
+            @extend .relative;
+
+            .searchIcon {
+                @extend .absolute;
+                top: 50%;
+                transform: translateY(-50%);
+            }
+
+            input {
+                line-height: 2rem;
+                font-size: 1rem;
+                padding: 0 1.5rem;
+                border: none;
+                outline: none;
+                background: none;
+                width: calc(100% - 1.5rem);
+            }
+        }
+    }
+}
+
+.temp-text {
+    width: 100%;
+    min-height: 300px;
+    @extend .flex-center;
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+</style>

@@ -5,6 +5,7 @@ import AdminView from "../views/AdminView.vue";
 import AddProductView from "../views/AddProductView.vue";
 import EditProductView from "../views/EditProductView.vue";
 import ManageOrder from "../components/ManageOrder.vue";
+import ManageAccount from "../components/ManageAccount.vue";
 
 export const router = createRouter({
 	history: createWebHistory(),
@@ -32,7 +33,7 @@ export const router = createRouter({
 				{
 					path: "accounts",
 					name: "adminManageAccount",
-					component: HelloWorld,  // put manage account here
+					component: ManageAccount,
 				},
 				{
 					path: "statistics",
