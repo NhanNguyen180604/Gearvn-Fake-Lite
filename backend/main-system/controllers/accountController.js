@@ -1,6 +1,6 @@
 const checkAdmin = require("../../middlewares/checkAdmin");
 const asyncHandler = require('express-async-handler');
-const { clerkClient } = require("@clerk/express");
+const { clerkClient, getAuth } = require("@clerk/express");
 
 /**
  * Get accounts
@@ -54,6 +54,12 @@ const getAccounts = asyncHandler(async (req, res) => {
  */
 const deleteAccount = asyncHandler(async (req, res) => {
     let id = req.params.id;
+    const auth = getAuth(req);
+    if (auth.userId === id)
+    {
+        res.status(400);
+        throw new Error("You can't delete yourself");
+    }
     await clerkClient.users.deleteUser(id);
     res.status(200).json({ success: true });
 })
