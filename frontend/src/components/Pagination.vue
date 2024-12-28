@@ -18,11 +18,6 @@ const props = defineProps({
         type: Number,
         required: true,
         default: 100,
-    },
-    total: {
-        type: Number,
-        required: true,
-        default: 100,
     }
 });
 

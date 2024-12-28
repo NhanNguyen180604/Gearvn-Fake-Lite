@@ -171,7 +171,7 @@ const updateOrderStatusWrapper = async (id: string, status: string) => {
                 </table>
 
                 <Pagination @page-change="(new_page) => loadPage(new_page)" :page="page" :total-pages="totalPages"
-                    :total="total" :per-page="perPage" />
+                    :per-page="perPage" />
             </div>
         </div>
 

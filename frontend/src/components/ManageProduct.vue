@@ -248,7 +248,7 @@ const deleteProductWrapper = async (id: string) => {
                 </div>
 
                 <Pagination @page-change="(new_page) => loadPage(new_page)" :page="page" :total-pages="totalPages"
-                    :total="total" :per-page="perPage" />
+                    :per-page="perPage" />
             </div>
             <div v-else class="temp-text">
                 No products
