@@ -13,6 +13,8 @@ import ManageCategory from "../components/ManageCategory.vue";
 import ManageBrand from "../components/ManageBrand.vue";
 import AddCategory from "../views/AddCategory.vue";
 import AddBrand from "../views/AddBrand.vue";
+import ProductDetail from "../components/productDetail.vue";
+import searchResult from "../components/searchProduct.vue";
 
 export const router = createRouter({
 	history: createWebHistory(),
@@ -31,6 +33,18 @@ export const router = createRouter({
 					path: "/products",
 					name: "productList",
 					component: productList,
+				},
+				{
+					path: "/products/:_id",
+					name: "ProductDetail",
+					component: ProductDetail,
+					props: true, // Allow route params as props
+				},
+				{
+					path: "/search",
+					name: "searchProduct",
+					component: searchResult,
+					props: true, // Allow route params as props
 				},
 			],
 		},
