@@ -9,6 +9,9 @@ import ManageAccount from "../components/ManageAccount.vue";
 import userView from "../views/UserView.vue";
 import homeBody from "../components/homeBody.vue";
 import productList from "../components/userFilterCategory.vue";
+import ProductDetail from '../components/productDetail.vue';
+import searchResult from '../components/searchProduct.vue';
+
 
 export const router = createRouter({
 	history: createWebHistory(),
@@ -27,7 +30,20 @@ export const router = createRouter({
 					path: "/products",
 					name:'productList',
 					component: productList,
-				}
+				},
+				{
+					path: '/products/:_id',
+					name: 'ProductDetail',
+					component: ProductDetail,
+					props: true, // Allow route params as props
+				  },
+				  {
+					path: '/search',
+					name: 'searchProduct',
+					component: searchResult,
+					props: true, // Allow route params as props
+				  },
+				
 			]
 		},
 		{
