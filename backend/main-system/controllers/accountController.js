@@ -5,8 +5,9 @@ const { clerkClient } = require("@clerk/express");
 /**
  * Get accounts
  * @route GET /api/account
- * @access public
+ * @access admin only
  * @query
+ * - `q` (string): query
  * - `page` (number): page number
  * - `per_page` (number): number of users per page
  */
@@ -29,7 +30,8 @@ const getAccounts = asyncHandler(async (req, res) => {
 
     const users = await clerkClient.users.getUserList({
         limit: per_page,
-        offset: page * per_page
+        offset: page * per_page,
+        query: req.query.q
     });
 
     res.status(200).json({
