@@ -108,6 +108,7 @@ const goToPage = () => {
     }
 
     .page-arrow {
+        height: 100%;
         &:first-of-type {
             border-top-left-radius: 15px;
             border-bottom-left-radius: 15px;

@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { onMounted, ref, watch } from 'vue';
-import { getAccounts } from '../services/accountService';
+import { getAccounts, deleteAccount } from '../services/accountService';
 import { useRouter } from 'vue-router';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import { faSearch } from '@fortawesome/free-solid-svg-icons';
@@ -20,59 +20,38 @@ const error = ref({
 
 const router = useRouter();
 const page = ref(1);
-const perPage = 5;
+const perPage = 2;
 const totalPages = ref(100);
 const total = ref(1000);
-const accounts = ref<Account[] | null>([
-    {
-        id: '123',
-        name: 'Nhan',
-        role: 'user',
-    },
-    {
-        id: '456',
-        name: 'Lac',
-        role: 'user',
-    },
-    {
-        id: '789',
-        name: 'Long',
-        role: 'user',
-    },
-    {
-        id: '123456',
-        name: 'Thuy',
-        role: 'user',
-    },
-]);
+const accounts = ref<Account[] | null>([]);
 const search = ref<string>('');
 
 const fetchData = async (local_page: number, per_page: number) => {
-    // loading.value = true;
-    // try {
-    //     const response = await getAccounts(local_page, per_page, search.value);
-    //     if (response) {
-    //         accounts.value = response.users;
-    //         totalPages.value = response.total_pages;
-    //         total.value = response.total;
+    loading.value = true;
+    try {
+        const response = await getAccounts(local_page, per_page, search.value, token.value);
+        if (response) {
+            accounts.value = response.users;
+            totalPages.value = response.total_pages;
+            total.value = response.total;
 
-    //         if (response.page !== page.value) {
-    //             page.value = response.page;
-    //         }
-    //         console.log(accounts.value);
-    //     }
-    //     else {
-    //         error.value = {
-    //             error: true,
-    //             message: "Không thể tài khoản",
-    //         }
-    //     }
-    // } catch (err) {
-    //     error.value = {
-    //         error: true,
-    //         message: "Đã có lỗi, vui lòng thử lại",
-    //     };
-    // }
+            if (response.page !== page.value) {
+                page.value = response.page;
+            }
+            console.log(accounts.value);
+        }
+        else {
+            error.value = {
+                error: true,
+                message: "Không thể lấy tài khoản",
+            }
+        }
+    } catch (err) {
+        error.value = {
+            error: true,
+            message: "Đã có lỗi, vui lòng thử lại",
+        };
+    }
     loading.value = false;
 };
 
@@ -92,7 +71,7 @@ onMounted(async () => {
     }
 });
 
-watch(page, () => {
+watch([page, search], () => {
     debounce(() => fetchData(page.value, perPage), 300);
 });
 
@@ -107,6 +86,10 @@ const loadPage = async (new_page: number) => {
     if (new_page <= totalPages.value && new_page > 0 && new_page !== page.value) {
         page.value = new_page;
     }
+};
+
+const deleteAccountWrapper = async (id: string) => {
+    const response = await deleteAccount(id, token.value);
 };
 
 </script>
@@ -141,7 +124,7 @@ const loadPage = async (new_page: number) => {
                             <div>Role: {{ account.role }}</div>
                         </div>
                         <div class="accountBTN">
-                            <button>Xóa</button>
+                            <button class="deleteBTN">Xóa</button>
                         </div>
                     </div>
                 </div>
@@ -242,7 +225,7 @@ const loadPage = async (new_page: number) => {
 
     .accountContainer {
         display: grid;
-        grid-template-columns: 200px auto 200px;
+        grid-template-columns: auto 200px;
         gap: 20px;
         align-items: center;
         border-bottom: 1px solid var(--grid-line);
@@ -251,13 +234,9 @@ const loadPage = async (new_page: number) => {
             border-top: 1px solid var(--grid-line);
         }
 
-        .accountImage {
-            padding: 0 10px;
-        }
-
-        .accountImage,
         .accountInfo {
             cursor: pointer;
+            margin-left: 3rem;
         }
 
         .accountBTN {

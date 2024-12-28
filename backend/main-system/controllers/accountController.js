@@ -30,7 +30,7 @@ const getAccounts = asyncHandler(async (req, res) => {
 
     const users = await clerkClient.users.getUserList({
         limit: per_page,
-        offset: page * per_page,
+        offset: (page - 1) * per_page,
         query: req.query.q
     });
 

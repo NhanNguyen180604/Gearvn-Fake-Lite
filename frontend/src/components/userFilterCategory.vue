@@ -79,6 +79,7 @@
         <Pagination
         :page="page"
         :totalPages="totalPages"
+        :per-page="10"
         @page-change="(new_page) => loadPage(new_page)" 
         />
     </div>
