@@ -1,6 +1,7 @@
 const Cart = require('../../models/cartModel');
 const Product = require('../../models/productModel');
 const asyncHandler = require('express-async-handler');
+const mongoose = require('mongoose');
 
 /**
  * Get a user's cart
@@ -13,14 +14,12 @@ const getCart = asyncHandler(async (req, res) => {
 
     let cart = await Cart.findOne({ user: userId })
         .populate({ path: 'products.productID', model: 'Product' });
-
     if (!cart) {
         cart = await Cart.create({
             user: userId,
             products: [],
         });
     }
-
     res.status(200).json(cart);
 });
 
@@ -41,8 +40,8 @@ const putCart = asyncHandler(async (req, res) => {
             products: [],
         });
     }
-
     const { products } = req.body;  // each contains _id and quantity
+    console.log(products)
     if (!products || !products.length) {
         res.status(400);
         throw new Error("Where my product");
@@ -54,8 +53,10 @@ const putCart = asyncHandler(async (req, res) => {
         if (product.quantity > foundProduct.stock) {
             product.quantity = foundProduct.stock;
         }
-
-        const index = cart.products.map(cartProduct => cartProduct.productID).indexOf(product._id);
+        console.log(cart.products)
+        const index = cart.products.findIndex(cartProduct => 
+            cartProduct.productID.equals(product._id)
+        );
         if (index >= 0) {
             cart.products[index].quantity += product.quantity;
         }
@@ -64,10 +65,8 @@ const putCart = asyncHandler(async (req, res) => {
                 productID: product._id,
                 quantity: product.quantity,
             });
+            console.log(cart.products)
         }
-
-        foundProduct.stock -= product.quantity;
-        await foundProduct.save();
     }
     await cart.save();
 
@@ -82,7 +81,7 @@ const putCart = asyncHandler(async (req, res) => {
 const clearCart = asyncHandler(async (req, res) => {
     // get user id here
     const { userId } = req.auth;
-    const clearedCart = await clearCartHelper(userId, req.body.restock);
+    const clearedCart = await clearCartHelper(userId, req.params.restock);
     res.status(200).json(clearedCart);
 });
 

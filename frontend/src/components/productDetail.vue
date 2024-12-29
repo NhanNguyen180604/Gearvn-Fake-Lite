@@ -117,7 +117,18 @@
 import { ref, onMounted, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import { getProductById, getProducts } from '../services/productService'; // Import services
+import { putCart } from '../services/cartService';
+import { useSession } from '@clerk/vue';
+import axios from 'axios';
 
+const session = useSession();
+axios.defaults.withCredentials = true;
+const props = defineProps({
+  token: {
+    type: String,
+    default: null
+  }
+})
 // Get the product ID from route params
 const route = useRoute();
 
@@ -179,8 +190,27 @@ const nextImage = () => {
 };
 
 // Add product to cart (assuming you have a cart service)
-const addToCart = (productId: string) => {
-  // Add product to cart logic here
+const addToCart = async (productId: string) => {
+  if(props.token){
+    const res =await putCart(props.token, [{_id: route.params._id, quantity: 1}]);
+    console.log(res)
+  }
+  else {
+    // User is not logged in, use the backend session to store the cart items
+    const currentCart = await axios.get('http://localhost:3000/api/guest-cart');
+    // const existingProduct = currentCart.find((item: any) => item._id === productId);
+    const response = await axios.post('http://localhost:3000/api/guest-cart', {
+      productId: route.params._id,
+      quantity: 1,
+      image: product.value.images[0]?.url || "https://via.placeholder.com/150",
+      price: product.value.price,
+      name: product.value.name,
+      max: product.value.stock
+    });
+    
+    console.log(response);
+    console.log(currentCart);
+  }
 };
 const formatPrice = (price: number) => {
   return price.toLocaleString('vi-VN') + ' đ';

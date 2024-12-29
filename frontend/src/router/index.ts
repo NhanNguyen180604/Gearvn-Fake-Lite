@@ -17,6 +17,8 @@ import ProductDetail from "../components/productDetail.vue";
 import searchResult from "../components/searchProduct.vue";
 import Profile from "../components/Profile.vue";
 import statistic from "../components/statistic.vue";
+import Cart from "../components/Cart.vue";
+import Payment from "../components/Payment.vue";
 
 
 export const router = createRouter({
@@ -53,6 +55,16 @@ export const router = createRouter({
 					path: "/profile",
 					name: "profile",
 					component: Profile,
+				},
+				{
+					path: "cart",
+					name: "cart",
+					component: Cart,
+				},
+				{
+					path: "payment",
+					name: "payment",
+					component: Payment,
 				},
 
 			],

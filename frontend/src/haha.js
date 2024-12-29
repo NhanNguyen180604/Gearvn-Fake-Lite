@@ -1,4 +1,8 @@
-const express = require('express');
+"@vueuse/core": "^12.2.0",
+        "axios": "^1.7.9",
+        "primeicons": "^7.0.0",
+
+        const express = require('express');
         require('dotenv').config();
         const PORT = process.env.MAIN_PORT || 3001;
         const fileUpload = require('express-fileupload');
@@ -36,7 +40,7 @@ const express = require('express');
         app.use(require('../middlewares/initializeUser'));
         
         // routes
-        app.use('/api/sub-system', require('./routes/paymentRoutes'));
+        app.use('/api/sub-system', require('./routes/subsystemRoutes'));
         app.use('/api/categories', require('./routes/categoryRoutes'));
         app.use('/api/brands', require('./routes/brandRoutes'));
         app.use('/api/products', require('./routes/productRoutes'));
