@@ -99,7 +99,7 @@ const guestPay = asyncHandler(async (req, res) => {
             });
         });
 
-        const response = await axiosInstance.post(`/api/payment/${req.params.id}/withdraw`, {
+        const response = await axiosInstance.post(`/api/payment/guest/withdraw`, {
             amount: totalPrice,
             cardNumber,
             ccv,
@@ -108,7 +108,7 @@ const guestPay = asyncHandler(async (req, res) => {
 
         if (response.status === 200 && response.data?.id) {
             const order = await Order.create({
-                user: req.params.id,
+                user: 'guest',
                 products: products,
                 fullName: fullName,
                 phoneNumber: phoneNumber,
