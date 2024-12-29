@@ -32,12 +32,18 @@
             <h4>Không tìm thấy sản phẩm nào phù hợp với từ khoá "{{ query }}"</h4>
         </div>
     </div>
+    <div style="margin-top:20px">
+        <Pagination @page-change="(new_page) => loadPage(new_page)" :page="page" :total-pages="totalPages"
+            :per-page="perPage" />
+    </div>
 </template>
 
 <script lang="ts" setup>
 import { ref, computed, onMounted, watch } from "vue";
 import { useRoute } from "vue-router";
 import { getProducts } from "../services/productService"; // Import service
+import Pagination from './Pagination.vue'; // Import the Pagination component
+
 
 // Truy cập route để lấy query
 const route = useRoute();
@@ -46,6 +52,10 @@ const query = ref(route.query.query as string); // Nhận query từ URL, sử d
 // Dữ liệu sản phẩm
 const products = ref<Array<any>>([]); // Tất cả sản phẩm
 
+// Define the props for Pagination component
+const page = ref(1);
+const perPage = 12;
+const totalPages = ref(1);
 // Lọc sản phẩm dựa trên query
 const filteredProducts = computed(() => {
     // Kiểm tra nếu query rỗng, không thực hiện lọc
@@ -54,7 +64,7 @@ const filteredProducts = computed(() => {
     }
 
     // Lọc sản phẩm theo các tiêu chí: tên, thương hiệu, mô tả và danh mục
-    return products.value.filter((product) => {
+    const filtered = products.value.filter((product) => {
         const queryLower = query.value.toLowerCase(); // Chuyển query thành chữ thường
         console.log(product.brand.toLowerCase());
         console.log(product.brand.toLowerCase().includes(queryLower));
@@ -68,6 +78,13 @@ const filteredProducts = computed(() => {
             (product.category && product.category.toLowerCase().includes(queryLower)) // Danh mục sản phẩm
         );
     });
+    // Update totalPages after filtering
+    totalPages.value = Math.ceil(filtered.length / perPage);
+
+    // Apply pagination
+    const startIdx = (page.value - 1) * perPage;
+    const endIdx = startIdx + perPage;
+    return filtered.slice(startIdx, endIdx);
 });
 
 
@@ -90,7 +107,11 @@ const formatPrice = (price: number): string => {
         currency: "VND",
     }).format(price);
 };
-
+const loadPage = async (new_page: number) => {
+    if (new_page <= totalPages.value && new_page > 0 && new_page !== page.value) {
+        page.value = new_page;
+    }
+};
 // Lấy dữ liệu khi component được mount
 onMounted(async () => {
     await fetchProducts(); // Gọi hàm lấy danh sách sản phẩm
