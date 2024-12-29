@@ -50,6 +50,7 @@ const withdraw = asyncHandler(async (req, res) => {
     // Verify card info here, assume that it succeed
     await mongoose.connection.transaction(async (session) => {
         const wallet = await Wallet.findById(id, null, { session });
+        console.log(wallet, amount);
         if (!wallet) {
             res.status(404).json({ message: "Wallet not found" })
             return;

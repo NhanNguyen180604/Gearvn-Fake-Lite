@@ -35,7 +35,7 @@
                 </div>
                 <div class="form-group">
                     <label>Số điện thoại</label>
-                    <input type="tel" v-model="paymentInfo.phone" required />
+                    <input type="tel" v-model="paymentInfo.phoneNumber" required />
                 </div>
             </div>
             <h2>Địa chỉ khách hàng</h2>
@@ -63,9 +63,23 @@
             <div class="form-row">
                 <div class="form-group">
                     <label>Mã ví (Wallet ID)</label>
-                    <input type="text" v-model="paymentInfo.walletId" required />
+                    <input type="text" v-if="props.token" v-model="id" disabled />
+                    <input type="text" v-else v-model="paymentInfo.id" required />
                 </div>
-                <div class="form-group"></div>
+                <div class="form-group">
+                    <label>CVV</label>
+                    <input type="text" v-model="paymentInfo.cvv" required />
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Expiry Date</label>
+                    <input type="text" v-model="paymentInfo.expiryDate" required />
+                </div>
+                <div class="form-group">
+                    <label>Card Number</label>
+                    <input type="text" v-model="paymentInfo.cardNumber" required />
+                </div>
             </div>
 
             <button type="submit" class="submit-btn" @click="handlePayment">Xác nhận thanh toán</button>
@@ -74,14 +88,17 @@
 </template>
 
 <script setup lang="ts">
-import { useSession } from '@clerk/vue';
+import { useSession, useUser } from '@clerk/vue';
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { getCart } from '../services/cartService';
+import { getGuestCart } from '../services/guestCartService';
+import { withdraw } from '../services/withdrawService';
 const show = ref(true);
 const message = ref('');
 const type = ref('success');
-const session = useSession();
+const {user} = useUser();
+const id = user.value.id
 
 const props = defineProps({
     token: {
@@ -101,6 +118,9 @@ onMounted(async () => {
             quantity: product.quantity,
             max: product.productID.stock,
         }));
+    }
+    else{
+        cartItems.value = await getGuestCart();
     }
 })
 const router = useRouter();
@@ -128,36 +148,12 @@ const formatPrice = (price: number): string => {
     return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price);
 };
 
-// const handlePayment = () => {
-//     try {
-//             // Call the payment API
-//             const response = await fetch(`/api/payment/${paymentInfo.walletID}/withdraw`, {
-//                 method: 'POST',
-//                 // headers: {
-//                 //     'Content-Type': 'application/json',
-//                 // },
-//                 body: JSON.stringify({
-//                     amount: totalAmount.value,
-//                 }),
-//             });
-
-//             const result = await response.json();
-
-//             if (response.ok) {
-//                 // Show success popup
-//                 showPopup('Payment successful!', 'success');
-//             } else {
-//                 // Show error popup
-//                 showPopup(`Payment failed: ${result.message}`, 'error');
-//             }
-//         } else {
-//             console.error('No active session found');
-//         }
-//     } catch (error) {
-//         console.error('Failed to handle payment:', error);
-//         showPopup('Payment failed: An error occurred', 'error');
-//     }
-// }
+const handlePayment = async() => {
+    if(props.token){
+        const res = await withdraw(props.token, id, paymentInfo.value);
+        console.log(res)
+    }
+}
 </script>
 
 <style lang="scss" scoped>
@@ -243,12 +239,13 @@ $warning: var(--color-red);
 
 .submit-btn {
     display: block;
-    width: 100%;
-    padding: 1rem;
+    margin: 0 auto;
+    padding: 1rem 3rem;
     background-color: $warning;
     color: white;
     border: none;
     border-radius: 3rem;
+    font-weight: bold;
     font-size: 1rem;
     cursor: pointer;
     transition: background-color 0.3s;

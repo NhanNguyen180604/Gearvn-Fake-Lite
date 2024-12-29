@@ -6,6 +6,7 @@ import { deleteCart, getCart, putCart } from "../services/cartService";
 import { useAuth, useSession } from "@clerk/vue";
 const session = useSession();
 import { onBeforeRouteLeave, RouterLink } from "vue-router";
+import { deleteGuestCart, getGuestCart, putGuestCart } from "../services/guestCartService";
 const taisaophaithembien = defineProps({
   token: {
       type: String,
@@ -20,10 +21,7 @@ const loading = ref(true);
   );
 
   const increaseQuantity = (index: number) => {
-    if (cartItems.value[index].quantity < cartItems.value[index].max) {
       cartItems.value[index].quantity++;
-    }
-    
   };
   const decreaseQuantity = (index: number) => {
       if (cartItems.value[index].quantity > 1) {
@@ -39,8 +37,6 @@ const loading = ref(true);
 const validateQuantity = (index: number) => {
   if (cartItems.value[index].quantity < 1) {
     cartItems.value[index].quantity = 1;
-  } else if (cartItems.value[index].quantity > cartItems.value[index].max) {
-    cartItems.value[index].quantity = cartItems.value[index].max;
   }
 };
   
@@ -54,14 +50,10 @@ const validateQuantity = (index: number) => {
         price: product.productID.price,
         name: product.productID.name,
         quantity: product.quantity,
-        max: product.productID.stock,
       })); 
     }
-    else if(session.value) {
-    const savedCart = session.value.publicMetadata.guestCart;
-    if (savedCart) {
-      cartItems.value = savedCart;
-    }
+    else {
+      cartItems.value = await getGuestCart();
     }
     loading.value = false;
   });
@@ -74,6 +66,15 @@ const validateQuantity = (index: number) => {
         console.log('Cart updated after changes');
       } else {
         await deleteCart(taisaophaithembien.token, true);
+      }
+    }
+    else{
+      if (cartItems.value.length > 0) {
+        await deleteGuestCart();
+        await putGuestCart(cartItems.value);
+        console.log('Cart updated after changes');
+      } else {
+        await deleteGuestCart();
       }
     }
     next();
@@ -135,7 +136,6 @@ const validateQuantity = (index: number) => {
               type="number"
               v-model.number="item.quantity"
               min="1"
-              max = "2"
               @input="validateQuantity(index)"
               class="quantity-input"
             />

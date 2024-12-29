@@ -22,7 +22,7 @@
           <p class="product-brand" style="font-size: 30px;">Thương hiệu: {{ product.brand }}</p>
           <p class="card-text flex-grow-1 mb-1" style="color:red">{{ formatPrice(product.price) }}</p>
 
-          <button class="btn btn-danger btn-add-to-cart" @click="addToCart(product.id)">
+          <button class="btn btn-danger btn-add-to-cart" @click="addToCart(route.params._id)">
             Thêm vào giỏ hàng
           </button>
         </div>
@@ -120,6 +120,7 @@ import { getProductById, getProducts } from '../services/productService'; // Imp
 import { putCart } from '../services/cartService';
 import { useSession } from '@clerk/vue';
 import axios from 'axios';
+import { getGuestCart, putGuestCart } from '../services/guestCartService';
 
 const session = useSession();
 axios.defaults.withCredentials = true;
@@ -190,26 +191,15 @@ const nextImage = () => {
 };
 
 // Add product to cart (assuming you have a cart service)
-const addToCart = async (productId: string) => {
-  if(props.token){
-    const res =await putCart(props.token, [{_id: route.params._id, quantity: 1}]);
+const addToCart = async (productId) => {
+  if (props.token) {
+    const res = await putCart(props.token, [{ _id: productId, quantity: 1 }]);
     console.log(res)
   }
   else {
-    // User is not logged in, use the backend session to store the cart items
-    const currentCart = await axios.get('http://localhost:3000/api/guest-cart');
-    // const existingProduct = currentCart.find((item: any) => item._id === productId);
-    const response = await axios.post('http://localhost:3000/api/guest-cart', {
-      productId: route.params._id,
-      quantity: 1,
-      image: product.value.images[0]?.url || "https://via.placeholder.com/150",
-      price: product.value.price,
-      name: product.value.name,
-      max: product.value.stock
-    });
-    
-    console.log(response);
-    console.log(currentCart);
+    const response = await putGuestCart([{ _id: productId, quantity: 1 , name: product.value.name, price: product.value.price, max: product.value.stock, image:product.value.images[0]?.url||"https://via.placeholder.com/150"}])
+    console.log(response)
+    console.log(await getGuestCart())
   }
 };
 const formatPrice = (price: number) => {
