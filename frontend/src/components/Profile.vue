@@ -25,6 +25,7 @@ const depositInfo = ref({
     success: true,
     failureMessage: '',
 });
+const showID = ref(false);
 const error = ref({
     error: false,
     message: '',
@@ -37,10 +38,6 @@ const totalPages = ref(100);
 const total = ref(1000);
 const loading = ref(true);
 
-
-const fetchData = async (local_page: number, per_page: number) => {
-//implement get orders here
-};
 
 
 const formatCurrency = (amount) => {
@@ -84,14 +81,12 @@ const submit = async () => {
 };
 
 onMounted(async () => {
-    console.log('yay');
     if (user.value) {
         const response = await getBalance(user.value.id, token.value);
         if (response.status === 200) {
             balance.value = response.data?.balance;
         }
     }
-    await fetchData(page.value, perPage);
 });
 
 </script>
@@ -107,11 +102,12 @@ onMounted(async () => {
             <div class="userSection">
 
                 <h2 class="sectionTitle">Thông tin người dùng</h2>
-                <div class="userInfo">
-                    <p><strong>Tên người dùng:</strong> {{ user?.username }}</p>
-                    <p><strong>ID:</strong> {{ user?.id }}</p>
-                    <p><strong>Số dư:</strong> {{ balance.toLocaleString('vi-VN') }} đ</p>
-                </div>
+                <img :src="user?.imageUrl || 'https://placehold.co/150x150?text=User+Avatar'">
+            <div>
+                <div class="name">{{ user?.username }}</div>
+                <div class="id">ID: {{ user?.id }}</div>
+                <div class="balance">Số dư: <span>{{ balance.toLocaleString('vi-VN') }} đ</span></div>
+            </div>
             </div>
 
             <!-- Right section: Deposit form -->
