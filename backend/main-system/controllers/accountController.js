@@ -1,6 +1,7 @@
 const checkAdmin = require("../../middlewares/checkAdmin");
 const asyncHandler = require('express-async-handler');
 const { clerkClient, getAuth } = require("@clerk/express");
+const axiosInstance = require('../../axios-config/axios-config');
 
 /**
  * Get accounts
@@ -40,9 +41,7 @@ const getAccounts = asyncHandler(async (req, res) => {
             id: u.id,
             name: u.username,
             role: u.publicMetadata.role,
-            balance: await fetch(`https://localhost:8000/api/payment/${u.id}`)
-                .then(res => res.json())
-                .then(obj => obj.balance)
+            balance: (await axiosInstance.get(`https://localhost:8000/api/payment/${u.id}`)).data.balance
         }))),
         page,
         per_page,
