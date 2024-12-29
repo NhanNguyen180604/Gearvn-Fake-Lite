@@ -100,14 +100,19 @@ onMounted(async () => {
 
             <!-- Left section: User information -->
             <div class="userSection">
-
                 <h2 class="sectionTitle">Thông tin người dùng</h2>
-                <img :src="user?.imageUrl || 'https://placehold.co/150x150?text=User+Avatar'">
-            <div>
-                <div class="name">{{ user?.username }}</div>
-                <div class="id">ID: {{ user?.id }}</div>
-                <div class="balance">Số dư: <span>{{ balance.toLocaleString('vi-VN') }} đ</span></div>
-            </div>
+                <div class="userInfoContainer">
+                    <!-- Image on the left -->
+                    <img :src="user?.imageUrl || 'https://placehold.co/150x150?text=User+Avatar'" style="width:100px; height:100px; border-radius: 50%; margin-right: 20px;">
+                    
+                    <!-- Information on the right -->
+                    <div class="userDetails">
+                        <div class="name">Tên: {{ user?.username }}</div>
+                        <div class="id">ID: {{ user?.id }}</div>
+                        <div class="balance">Số dư: <span>{{ balance.toLocaleString('vi-VN') }} đ</span></div>
+                    </div>
+                </div>
+
             </div>
 
             <!-- Right section: Deposit form -->
@@ -185,7 +190,7 @@ onMounted(async () => {
     display: flex;
     gap: 40px;
     padding: 20px;
-    background: white;
+    background: var(--background-gray);
     border-radius: 10px;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
     justify-content: center;
@@ -197,7 +202,7 @@ onMounted(async () => {
     padding: 20px;
     border-radius: 10px;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    max-width: 400px;
+    max-width: 500px;
     /* Reduce width of the sections */
     width: 100%;
 
@@ -217,6 +222,28 @@ onMounted(async () => {
             }
         }
     }
+}
+.userInfoContainer {
+    display: flex;
+    align-items: center; /* Vertically align the content */
+    padding: 20px;
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.userDetails {
+    display: flex;
+    flex-direction: column;
+}
+
+.name, .id, .balance {
+    font-size: 16px;
+    margin-bottom: 10px;
+}
+
+.balance span {
+    font-weight: bold;
 }
 
 .sectionTitle {
