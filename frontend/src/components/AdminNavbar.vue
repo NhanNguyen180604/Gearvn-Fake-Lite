@@ -78,6 +78,8 @@ onMounted(async () => {
 
     .balance {
         margin-right: 20px;
+        color: white;
+        font-weight: 600;
     }
 }
 </style>

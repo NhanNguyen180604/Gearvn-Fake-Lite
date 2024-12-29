@@ -21,6 +21,7 @@ const depositInfo = ref({
     success: true,
     failureMessage: '',
 });
+const showID = ref(false);
 
 const submit = async () => {
     if (user.value) {
@@ -51,7 +52,6 @@ const submit = async () => {
 };
 
 onMounted(async () => {
-    console.log('yay');
     if (user.value) {
         const response = await getBalance(user.value.id, token.value);
         if (response.status === 200) {
@@ -72,9 +72,12 @@ onMounted(async () => {
     <div v-else class="profileContainer">
         <!-- basic information -->
         <div class="userInfo">
-            <div>Tên người dùng: {{ user?.username }}</div>
-            <div>ID: {{ user?.id }}</div>
-            <div>Số dư: {{ balance.toLocaleString('vi-VN') }} đ</div>
+            <img :src="user?.imageUrl || 'https://placehold.co/150x150?text=User+Avatar'">
+            <div>
+                <div class="name">{{ user?.username }}</div>
+                <div class="id">ID: {{ user?.id }}</div>
+                <div class="balance">Số dư: <span>{{ balance.toLocaleString('vi-VN') }} đ</span></div>
+            </div>
         </div>
 
         <!-- money deposit form -->
@@ -109,16 +112,57 @@ onMounted(async () => {
 <style lang="scss" scoped>
 .profileContainer {
     display: grid;
-    grid-template-columns: auto auto;
+    grid-template-columns: 600px auto;
+    padding: 20px;
     gap: 20px;
+
+    >* {
+        box-shadow: 0px 0px 5px var(--color-gray);
+    }
 
     .userInfo {
         padding: 1rem;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+
+        .name {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-top: 1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .id,
+        .balance {
+            font-size: 1.2rem;
+        }
+
+        .balance {
+            margin-top: 10px;
+
+            span {
+                font-weight: 600;
+            }
+        }
+
+        img {
+            width: 150px;
+            height: 150px;
+            object-fit: contain;
+            border-radius: 50%;
+        }
     }
 
     form {
-        width: 500px;
-        padding: 1rem;
+        width: 100%;
+        padding: 1rem 8rem;
+        justify-self: center;
+
+        h3 {
+            margin-bottom: 20px;
+        }
 
         label,
         input {
@@ -146,6 +190,7 @@ onMounted(async () => {
             border-radius: 10px;
             padding: 0.5rem 1rem;
             transition: 0.2s ease;
+            margin-top: 15px;
 
             &:hover {
                 opacity: 0.7;

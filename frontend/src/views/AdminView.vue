@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import AdminNavbar from '../components/AdminNavbar.vue';
-import { ref, onMounted } from 'vue';
+import { ref, watch, onMounted } from 'vue';
 import { useUser, useAuth, useSession } from '@clerk/vue';
 import AdminOnly from '../components/AdminOnly.vue';
 
@@ -12,13 +12,18 @@ const token = ref<string | null>('');
 const loading = ref(!isLoaded.value);
 const error = ref(false);
 
+// every reload will show AdminOnly even if you are an admin
+// fucking hell, very spaghetti, kill this shiet as soon as possible
+watch(user, async () => {
+    await initialize();
+})
+
 onMounted(async () => {
     await initialize();
 });
 
 const initialize = async () => {
     loading.value = true;
-
     if (user.value) {
         // navigate admin to their page
         if (user.value.publicMetadata.role !== 'admin') {
@@ -26,7 +31,6 @@ const initialize = async () => {
             loading.value = false;
             return;
         }
-
         // get user token to pass to pages
         if (session.value)
             token.value = await session.value.getToken({ template: 'test-template' });
