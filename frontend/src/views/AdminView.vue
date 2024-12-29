@@ -12,7 +12,7 @@ const token = ref<string | null>('');
 const loading = ref(!isLoaded.value);
 const error = ref(false);
 
-// every reload will show Restricted even if you are an admin
+// every reload will show Restricted even if you are an admin, will reload on tab change
 // fucking hell, very spaghetti, kill this shiet as soon as possible
 watch(user, async () => {
     await initialize();

@@ -57,11 +57,26 @@ const getOrders = asyncHandler(async (req, res) => {
         if (!isNaN(fromDate))
             filter.createdAt = { $gte: fromDate };
     }
-    if (req.query.to && req.query.to.trim().length) {
+    if (req.query.to?.trim()) {
         const toDate = parseDate(req.query.to);
-        if (!isNaN(toDate))
-            filter.createdAt = { $lte: toDate };
+        if (!isNaN(toDate)) {
+            if (req.query.from?.trim() && req.query.from === req.query.to) {
+                // Same day filtering
+                const startOfDay = parseDate(req.query.from);
+                const endOfDay = new Date(startOfDay);
+                endOfDay.setHours(23, 59, 59, 999);
+                filter.createdAt = { $gte: startOfDay, $lte: endOfDay };
+            } else {
+                if (filter.createdAt) {
+                    filter.createdAt.$lte = toDate;
+                } else {
+                    filter.createdAt = { $lte: toDate };
+                }
+            }
+        }
     }
+
+    console.log(filter);
 
     const total = await Order.countDocuments(filter);
     const total_pages = Math.ceil(total / per_page);
@@ -189,7 +204,10 @@ const updateStatus = asyncHandler(async (req, res) => {
 
 const parseDate = (date) => {
     const [day, month, year] = date.split('/').map(Number);
-    return new Date(year, month - 1, day);
+    const result = new Date(year, month - 1, day);
+    console.log(result);
+    console.log(day);
+    return result;
 };
 
 module.exports = {

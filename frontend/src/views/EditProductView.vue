@@ -156,7 +156,7 @@ const submit = async () => {
         formData.append('category', product.value.category);
         formData.append('brand', product.value.brand);
         formData.append('description', product.value.description);
-        formData.append('stock', product.value.stock.toString());
+        formData.append('stock', '1000');
 
         if (thumbnail.value) {
             if (thumbnail.value.objectURL) {
@@ -325,12 +325,6 @@ const canPost = () => {
                         {{ brand.name }}
                     </option>
                 </select>
-            </section>
-
-            <section>
-                <label for="Stock">Số lượng tồn kho</label>
-                <input type="number" min="0" v-model="product.stock" name="Stock" id="Stock" v-if="product"
-                    :disabled="submitting || deleting">
             </section>
 
             <section>
