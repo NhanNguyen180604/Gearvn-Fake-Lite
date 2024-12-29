@@ -63,6 +63,12 @@ const withdraw = asyncHandler(async (req, res) => {
         res.status(200).json({
             id, balance: wallet.balance
         });
+
+        const adminWallet = await Wallet.findById(process.env.MAIN_ACCOUNT_ID);
+        if (adminWallet) {
+            adminWallet.balance += amount;
+            await adminWallet.save();
+        }
     })
 });
 

@@ -3,7 +3,12 @@ const axiosInstance = require('../../axios-config/axios-config');
 const Order = require('../../models/orderModel');
 const Cart = require('../../models/cartModel');
 const Product = require('../../models/productModel');
+const { clearCartHelper } = require('../controllers/cartController');
 
+/**
+ * Logged in user pays 
+ * @route POST /api/sub-system/payment/:id
+ */
 const userPay = asyncHandler(async (req, res) => {
     try {
         const { fullName, phoneNumber, city, district, street, cardNumber, ccv, expiryDate } = req.body;
@@ -42,7 +47,7 @@ const userPay = asyncHandler(async (req, res) => {
             }
         );
 
-        if (response.status === 200) {
+        if (response.status === 200 && response.data?.id) {
             const order = await Order.create({
                 user: req.params.id,
                 products: products,
@@ -55,6 +60,10 @@ const userPay = asyncHandler(async (req, res) => {
                 totalPrice: totalPrice,
             });
             res.status(200).json(order);
+            await clearCartHelper(req.params.id, false);
+        }
+        else {
+            return res.status(response.status).json(response.data)
         }
     }
     catch (error) {
@@ -66,25 +75,14 @@ const userPay = asyncHandler(async (req, res) => {
     }
 });
 
+/**
+ * Guest pays
+ * @route POST /api/sub-system/payment/guest
+ */
 const guestPay = asyncHandler(async (req, res) => {
     try {
-        const { fullName, phoneNumber, city, district, street } = req.body;
-        const token = await req.auth.getToken();
-        const response = await axiosInstance.post('/api/payment',
-            {
-                fullName,
-                phoneNumber,
-                city,
-                district,
-                street,
-            },
-            {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                }
-            }
-        );
-        res.status(response.status).json(response.data);
+        const { fullName, phoneNumber, city, district, street, cardNumber, ccv, expiryDate } = req.body;
+
     }
     catch (error) {
         if (error.response) {
