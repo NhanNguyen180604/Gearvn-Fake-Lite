@@ -69,7 +69,7 @@ const product = ref<Product>({
     category: '',
     brand: '',
     description: '',
-    stock: 0,
+    stock: 1000,
     images: [],  // not using this,
     imagePreviews: [],
 });

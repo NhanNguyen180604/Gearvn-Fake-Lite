@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { defineProps, ref, toRef, onMounted } from 'vue';
 import { getBalance } from '../services/walletService';
-import { useUser } from '@clerk/vue';
+import { useUser, SignedIn, SignOutButton } from '@clerk/vue';
 
 const prop = defineProps({
     token: {
@@ -38,6 +38,14 @@ onMounted(async () => {
         <div class="balance">
             {{ balance.toLocaleString('vi-VN') }} đ
         </div>
+
+        <SignedIn>
+            <SignOutButton>
+                <button class="btn btn-outline-dark me-2" style="background-color:var(--shop-signin-color)">
+                    Đăng xuất
+                </button>
+            </SignOutButton>
+        </SignedIn>
     </div>
 
 </template>

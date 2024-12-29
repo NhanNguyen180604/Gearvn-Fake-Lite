@@ -106,7 +106,7 @@ const guestPay = asyncHandler(async (req, res) => {
             expiryDate,
         });
 
-        if (response.status === 200 && response.data?.id) {
+        if (response.status === 200 && response.data?.success) {
             const order = await Order.create({
                 user: 'guest',
                 products: products,

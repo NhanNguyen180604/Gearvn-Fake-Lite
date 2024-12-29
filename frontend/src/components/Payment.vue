@@ -1,7 +1,7 @@
 <template>
     <div v-if="show" class="popup" :class="type">
         <!-- <p>{{ message }}</p> -->
-         <p>Bạn đã chuyển tiền thành công</p>
+        <p>Bạn đã chuyển tiền thành công</p>
         <button @click="closePopup">Close</button>
     </div>
     <div class="payment-container">
@@ -93,12 +93,12 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { getCart } from '../services/cartService';
 import { getGuestCart } from '../services/guestCartService';
-import { withdraw } from '../services/withdrawService';
+import { userPay, guestPay } from '../services/withdrawService';
 const show = ref(true);
 const message = ref('');
 const type = ref('success');
-const {user} = useUser();
-const id = user.value.id
+const { user } = useUser();
+const id = user.value?.id;
 
 const props = defineProps({
     token: {
@@ -119,7 +119,7 @@ onMounted(async () => {
             max: product.productID.stock,
         }));
     }
-    else{
+    else {
         cartItems.value = await getGuestCart();
     }
 })
@@ -127,7 +127,7 @@ const router = useRouter();
 
 // Mock cart items - replace with your actual cart data
 const cartItems = ref([]);
-const paymentInfo = ref([]);
+const paymentInfo = ref({});
 const showPopup = (msg: string, popupType: string) => {
     message.value = msg;
     type.value = popupType;
@@ -148,10 +148,15 @@ const formatPrice = (price: number): string => {
     return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price);
 };
 
-const handlePayment = async() => {
-    if(props.token){
-        const res = await withdraw(props.token, id, paymentInfo.value);
+const handlePayment = async () => {
+    console.log(paymentInfo.value);
+    if (props.token) {
+        const res = await userPay(props.token, id, paymentInfo.value);
         console.log(res)
+    }
+    else {
+        const res = await guestPay(paymentInfo.value);
+        console.log(res);
     }
 }
 </script>
@@ -333,26 +338,26 @@ $warning: var(--color-red);
 }
 
 .popup {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  padding: 1rem;
-  background-color: white;
-  border: 1px solid #ccc;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  z-index: 1000;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    padding: 1rem;
+    background-color: white;
+    border: 1px solid #ccc;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
 }
 
 .popup.success {
-  border-color: green;
+    border-color: green;
 }
 
 .popup.error {
-  border-color: red;
+    border-color: red;
 }
 
 .popup button {
-  margin-top: 1rem;
+    margin-top: 1rem;
 }
 </style>

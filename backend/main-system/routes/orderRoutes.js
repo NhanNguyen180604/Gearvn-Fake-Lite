@@ -12,7 +12,6 @@ router.route('/one')
 
 router.route('/:id')
     .get(requireAuth({ signInUrl: '/login' }), orderController.getOrderById)
-    // .delete(orderController.cancelOrder)
     .put(checkAdmin, orderController.updateStatus)
 
 

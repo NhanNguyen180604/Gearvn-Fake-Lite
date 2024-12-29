@@ -60,17 +60,18 @@ const getOrders = asyncHandler(async (req, res) => {
     if (req.query.to?.trim()) {
         const toDate = parseDate(req.query.to);
         if (!isNaN(toDate)) {
+            const endOfDay = new Date(toDate);
+            endOfDay.setHours(23, 59, 59, 999);
+
             if (req.query.from?.trim() && req.query.from === req.query.to) {
                 // Same day filtering
                 const startOfDay = parseDate(req.query.from);
-                const endOfDay = new Date(startOfDay);
-                endOfDay.setHours(23, 59, 59, 999);
                 filter.createdAt = { $gte: startOfDay, $lte: endOfDay };
             } else {
                 if (filter.createdAt) {
-                    filter.createdAt.$lte = toDate;
+                    filter.createdAt.$lte = endOfDay;
                 } else {
-                    filter.createdAt = { $lte: toDate };
+                    filter.createdAt = { $lte: endOfDay };
                 }
             }
         }
@@ -154,38 +155,14 @@ const getMyOrders = asyncHandler(async (req, res) => {
     });
 });
 
-// TODO remake this
-const cancelOrder = asyncHandler(async (req, res) => {
-    const order = await Order.findById(req.params.id);
-    if (!order) {
-        res.status(404);
-        throw new Error("Order not found");
-    }
-
-    // get user here
-    const { userId } = req.auth;
-    const cart = await Cart.findOne({ user: userId });
-
-    // refill the cart
-    cart.products = order.products.map(product => ({
-        productID: product.productID,
-        quantity: product.quantity,
-    }));
-    await cart.save();
-
-    // delete the order
-    await order.deleteOne();
-    res.status(200).json(order);
-});
-
 const updateStatus = asyncHandler(async (req, res) => {
     // get admin here
-    // const { userId } = req.auth;
-    // const user = await clerkClient.users.getUsers(userId);
-    // if (user.publicMetadata.role !== 'admin') {
-    //     res.status(401);
-    //     throw new Error("You are not an admin");
-    // }
+    const { userId } = req.auth;
+    const user = await clerkClient.users.getUsers(userId);
+    if (user.publicMetadata.role !== 'admin') {
+        res.status(401);
+        throw new Error("You are not an admin");
+    }
 
     const { status } = req.body;
     if (!["Đang chờ", "Đang giao", "Đã giao"].includes(status)) {
@@ -205,14 +182,11 @@ const updateStatus = asyncHandler(async (req, res) => {
 const parseDate = (date) => {
     const [day, month, year] = date.split('/').map(Number);
     const result = new Date(year, month - 1, day);
-    console.log(result);
-    console.log(day);
     return result;
 };
 
 module.exports = {
     getOrderById,
-    cancelOrder,
     getOrders,
     getMyOrders,
     updateStatus,

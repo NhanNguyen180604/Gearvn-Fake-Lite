@@ -124,7 +124,7 @@ const deleteAccountWrapper = async (id: string) => {
                         <div class="accountInfo">
                             <div>ID: {{ account.id }}</div>
                             <div>Tên: {{ account.name }}</div>
-                            <div>Role: {{ account.role }}</div>
+                            <div>Role: {{ account.role || 'user' }}</div>
                             <div>Số dư: {{ account.balance.toLocaleString('vi-VN') }} đ</div>
                         </div>
                         <div class="accountBTN" v-if="account.role !== 'admin'">
