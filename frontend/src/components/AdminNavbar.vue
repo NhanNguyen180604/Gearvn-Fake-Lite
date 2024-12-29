@@ -1,6 +1,5 @@
 <template>
     <nav>
-        <RouterLink to="/">Trang chủ</RouterLink>
         <RouterLink to="/admin/products">Quản lý sản phẩm</RouterLink>
         <RouterLink to="/admin/orders">Quản lý đơn hàng</RouterLink>
         <RouterLink to="/admin/accounts">Quản lý tài khoản</RouterLink>

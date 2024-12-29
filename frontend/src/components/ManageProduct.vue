@@ -236,7 +236,7 @@ const deleteProductWrapper = async (id: string) => {
                         <div class="productInfo" @click="() => router.push(`/products/${product._id}/edit`)">
                             <div>ID: {{ product._id }}</div>
                             <div>Tên sản phẩm: {{ product.name }}</div>
-                            <div>Giá: {{ product.price.toLocaleString() }} VNĐ</div>
+                            <div>Giá: {{ product.price.toLocaleString('vi-VN') }} đ</div>
                             <div>Danh mục: {{ product.category }}</div>
                         </div>
                         <div class="productBTN">

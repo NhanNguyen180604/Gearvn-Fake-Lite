@@ -215,7 +215,7 @@ const deleteCategoryWrapper = async (name: string) => {
     >* {
         text-align: center;
         padding: 1rem 0.5rem;
-        background-color: var(--shop-header-color);
+        background-color: var(--background-gray);
         border-radius: 1rem;
     }
 

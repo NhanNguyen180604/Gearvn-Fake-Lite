@@ -65,8 +65,9 @@
 
 <script lang="ts" setup>
 import { SignedIn, SignedOut, SignInButton, SignOutButton } from '@clerk/vue';
-import { ref } from 'vue';
+import { ref, watch } from 'vue';
 import { useRouter } from "vue-router";
+import { useUser } from '@clerk/vue';
 
 // Tìm kiếm
 const searchInput = ref<string>(''); // Input tìm kiếm (chuỗi)
@@ -82,4 +83,12 @@ const emitSearchInput = (): void => {
         });
     }
 };
+
+// navigate admin to their own pages
+const { user } = useUser();
+watch(user, () => {
+    if (user.value && user.value.publicMetadata.role === 'admin') {
+        router.push('/admin/products');
+    }
+});
 </script>
