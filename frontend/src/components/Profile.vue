@@ -2,10 +2,10 @@
 import { toRef, onMounted, ref, watch } from 'vue';
 import { useUser } from '@clerk/vue';
 import { postDeposit, getBalance } from '../services/walletService';
-import { getOrders } from '../services/orderService';
+import { getMyOrders } from '../services/orderService';
 import { type Order } from '../types/orderType';
-
-
+import Pagination from './Pagination.vue';
+import Restricted from './Restricted.vue';
 
 const prop = defineProps({
     token: {
@@ -13,6 +13,8 @@ const prop = defineProps({
         required: true,
     }
 });
+
+const pageLoading = ref(true);
 
 const { user, isLoaded, isSignedIn } = useUser();
 const balance = ref(0);
@@ -25,33 +27,13 @@ const depositInfo = ref({
     success: true,
     failureMessage: '',
 });
-const showID = ref(false);
-const error = ref({
-    error: false,
-    message: '',
-});
 
-const orders = ref<Order[] | null>(null);
-    const page = ref(1);
-const perPage = 5;
+const page = ref(1);
+const perPage = 1;
 const totalPages = ref(100);
 const total = ref(1000);
-const loading = ref(true);
+const orders = ref<Order[]>([]);
 
-
-
-const formatCurrency = (amount) => {
-    return amount.toLocaleString('vi-VN', {
-        style: 'decimal',
-        minimumFractionDigits: 0,
-    });
-};
-watch(
-    () => depositInfo.value.amount,
-    (newAmount) => {
-        depositInfo.value.formattedAmount = formatCurrency(newAmount);
-    }
-);
 const submit = async () => {
     if (user.value) {
         const formData = new FormData();
@@ -81,30 +63,63 @@ const submit = async () => {
 };
 
 onMounted(async () => {
+    pageLoading.value = true;
+
     if (user.value) {
         const response = await getBalance(user.value.id, token.value);
         if (response.status === 200) {
             balance.value = response.data?.balance;
         }
+
+        await fetchOrders(page.value, perPage);
     }
+
+    pageLoading.value = false;
 });
+
+watch(page, async () => {
+    await fetchOrders(page.value, perPage);
+});
+
+const fetchOrders = async (local_page: number, per_page: number) => {
+    const orderResponse = await getMyOrders(local_page, per_page, token.value);
+    console.log(orderResponse);
+    if (orderResponse) {
+        totalPages.value = orderResponse.total_pages;
+        total.value = orderResponse.total;
+        orders.value = orderResponse.orders;
+    }
+};
+
+const loadPage = async (new_page: number) => {
+    if (new_page <= totalPages.value && new_page > 0 && new_page !== page.value) {
+        page.value = new_page;
+    }
+};
+
+const formatDate = (date: any) => {
+    return (new Date(date)).toLocaleDateString('en-GB');
+}
 
 </script>
 
 <template>
-    <div v-if="!isLoaded"></div>
-    <div v-else-if="!isSignedIn"></div>
-
+    <div v-if="!isLoaded || pageLoading" class="loadingText">
+        Đang tải...
+    </div>
+    <div v-else-if="!isSignedIn">
+        <Restricted :user="'người dùng đăng nhập'" />
+    </div>
     <div v-else>
         <div class="profileContainer">
-
             <!-- Left section: User information -->
             <div class="userSection">
                 <h2 class="sectionTitle">Thông tin người dùng</h2>
                 <div class="userInfoContainer">
                     <!-- Image on the left -->
-                    <img :src="user?.imageUrl || 'https://placehold.co/150x150?text=User+Avatar'" style="width:100px; height:100px; border-radius: 50%; margin-right: 20px;">
-                    
+                    <img :src="user?.imageUrl || 'https://placehold.co/150x150?text=User+Avatar'"
+                        style="width:100px; height:100px; border-radius: 50%; margin-right: 20px;">
+
                     <!-- Information on the right -->
                     <div class="userDetails">
                         <div class="name">Tên: {{ user?.username }}</div>
@@ -132,21 +147,22 @@ onMounted(async () => {
 
                     <label for="amount">Số tiền nạp vào (VNĐ)</label>
                     <input type="number" min="0" step="1000" id="amount" required v-model="depositInfo.amount">
-                    <p><strong>Số tiền đã nhập:</strong> {{ depositInfo.formattedAmount }} đ</p>
+                    <p><strong>Số tiền đã nhập:</strong> {{ depositInfo.amount.toLocaleString('vi-VN') }} đ</p>
 
                     <div v-if="!depositInfo.success" class="failMessage">Nạp tiền thất bại, lý do {{
                         depositInfo.failureMessage }}</div>
                     <button @click.prevent="submit">Nạp tiền</button>
                 </form>
             </div>
-
         </div>
 
         <!-- New section: Order list as table -->
-        
-        <div style="display:flex; justify-content: center; width:100%;"><h2 class="sectionTitle" style="width:80%; margin-top:20px;margin-bottom:10px">Danh sách đơn đặt hàng</h2></div>
+
+        <div style="display:flex; justify-content: center; width:100%;">
+            <h2 class="sectionTitle" style="width:80%; margin-top:20px;margin-bottom:10px">Danh sách đơn đặt hàng</h2>
+        </div>
         <div class="orderSection">
-            <div  v-if="orders&&orders.length === 0" class="noOrdersMessage">
+            <div v-if="orders && orders.length === 0" class="noOrdersMessage">
                 <p>Chưa có đơn hàng nào.</p>
             </div>
             <div v-else>
@@ -158,6 +174,7 @@ onMounted(async () => {
                             <th>Địa chỉ</th>
                             <th>Sản phẩm</th>
                             <th>Tổng tiền</th>
+                            <th>Ngày đặt</th>
                             <th>Tình trạng</th>
                         </tr>
                     </thead>
@@ -168,24 +185,45 @@ onMounted(async () => {
                             <td>{{ order.street }}, {{ order.distreet }}, {{ order.city }}</td>
                             <td>
                                 <ul>
-                                    <li v-for="(product, index) in order.products" :key="index">{{ product.Name }} - {{
-                                        product.quantity }} x {{ product.Price | formatCurrency }} đ</li>
+                                    <li v-for="(product, index) in order.products" :key="index">{{ product.quantity
+                                        }} x {{
+                                            product.productName }} - {{ product.productPrice.toLocaleString('vi-VN') }} đ
+                                    </li>
                                 </ul>
                             </td>
-                            <td>{{ order.totalPrice | formatCurrency }} đ</td>
-                            <td>{{ order.status }}</td>
+                            <td>{{ order.totalPrice.toLocaleString('vi-VN') }} đ</td>
+                            <td>{{ formatDate(order.createdAt) }}</td>
+                            <td>
+                                <button v-if="order.status === 'Đang chờ'" class="shipping-btn" disabled>
+                                    Đang giao
+                                </button>
+                                <button v-else="order.status === 'Đang giao'" class="shipped-btn" disabled>
+                                    Đã giao
+                                </button>
+                            </td>
                         </tr>
                     </tbody>
                 </table>
+
+                <Pagination :page="page" :perPage="perPage" :total-pages="totalPages"
+                    @page-change="(new_page) => loadPage(new_page)" />
             </div>
         </div>
     </div>
-
-
 </template>
 
 
 <style lang="scss" scoped>
+.loadingText {
+    display: grid;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    font-weight: bold;
+    height: 80vh;
+    background: white;
+}
+
 .profileContainer {
     display: flex;
     gap: 40px;
@@ -223,9 +261,11 @@ onMounted(async () => {
         }
     }
 }
+
 .userInfoContainer {
     display: flex;
-    align-items: center; /* Vertically align the content */
+    align-items: center;
+    /* Vertically align the content */
     padding: 20px;
     background: #fff;
     border-radius: 10px;
@@ -237,7 +277,9 @@ onMounted(async () => {
     flex-direction: column;
 }
 
-.name, .id, .balance {
+.name,
+.id,
+.balance {
     font-size: 16px;
     margin-bottom: 10px;
 }
@@ -290,30 +332,28 @@ onMounted(async () => {
             margin-bottom: 10px;
         }
 
-    }
+        button {
+            display: inline-block;
+            background: #E13737;
+            color: #fff;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.3s;
 
-}
-
-button {
-    display: inline-block;
-    background: #E13737;
-    color: #fff;
-    padding: 10px 20px;
-    border: none;
-    border-radius: 5px;
-    font-size: 16px;
-    cursor: pointer;
-    transition: background 0.3s;
-
-    &:hover {
-        background: #931e1e;
+            &:hover {
+                background: #931e1e;
+            }
+        }
     }
 }
+
 .orderSection {
-    display:flex;
+    display: flex;
     justify-content: center;
     width: 100%;
-
 }
 
 .noOrdersMessage {
@@ -322,10 +362,15 @@ button {
 }
 
 .orderTable {
-    width: 100%; /* Set the table width to 80% of the parent container */
+    width: 100%;
+    margin-bottom: 20px;
+    /* Set the table width to 80% of the parent container */
     border-collapse: collapse;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* Optional: Add a shadow for a better look */
-    th, td {
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+
+    /* Optional: Add a shadow for a better look */
+    th,
+    td {
         padding: 12px;
         text-align: left;
         border: 1px solid #ddd;
@@ -345,6 +390,36 @@ button {
     td ul {
         padding-left: 20px;
     }
-}
 
+    button {
+        width: 100%;
+        border-radius: 15px;
+        border: none;
+        font-weight: bold;
+        transition: 0.2s ease;
+        padding: 4px 12px;
+
+        &:not(:disabled) {
+            cursor: pointer;
+        }
+
+        &:not(:disabled):hover {
+            opacity: 0.7;
+        }
+    }
+
+    .shipping-btn {
+        background: var(--admin-paging-color);
+        color: white;
+    }
+
+    .shipped-btn {
+        background: var(--color-yellow);
+
+        &:disabled {
+            background: var(--light-green);
+            color: white;
+        }
+    }
+}
 </style>

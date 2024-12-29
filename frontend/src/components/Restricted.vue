@@ -1,6 +1,15 @@
+<script lang="ts" setup>
+defineProps({
+    user: {
+        type: String,
+        required: true,
+    },
+})
+</script>
+
 <template>
     <div class="temp-text">
-        <div>Chỉ có admin mới được quyền truy cập nội dung này</div>
+        <div>Chỉ có {{ user.toLowerCase() }} mới được quyền truy cập nội dung này</div>
         <RouterLink to="/">Quay về</RouterLink>
     </div>
 </template>
@@ -15,6 +24,7 @@
     height: 80vh;
     font-size: 1.5rem;
     font-weight: bold;
+    background: white;
 
     a {
         cursor: pointer;

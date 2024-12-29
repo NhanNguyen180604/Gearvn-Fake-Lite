@@ -27,6 +27,27 @@ export const getOrders = async (
 	return await response.json();
 };
 
+export const getMyOrders = async (
+	page = 1,
+	per_page = 20,
+
+	token: string | null = ""
+): Promise<OrderResponse | null> => {
+	const response = await fetch(
+		API +
+			`/one?page=${page}&per_page=${per_page}`,
+		{
+			method: "GET",
+			headers: {
+				Authorization: `Bearer ${token}`,
+			},
+		}
+	);
+	if (response.status !== 200) return null;
+
+	return await response.json();
+};
+
 export const updateOrderStatus = async (
 	id: string,
 	status: string,
