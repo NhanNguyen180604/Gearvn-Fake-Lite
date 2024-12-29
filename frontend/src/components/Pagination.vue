@@ -144,6 +144,7 @@ const goToPage = () => {
 
         input[type='number'] {
             font-family: inherit;
+            background: none;
             font-size: 1rem;
             padding: 0;
             width: 100%;

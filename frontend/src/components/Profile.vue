@@ -1,7 +1,11 @@
 <script lang="ts" setup>
-import { toRef, onMounted, ref } from 'vue';
+import { toRef, onMounted, ref, watch } from 'vue';
 import { useUser } from '@clerk/vue';
 import { postDeposit, getBalance } from '../services/walletService';
+import { getMyOrders } from '../services/orderService';
+import { type Order } from '../types/orderType';
+import Pagination from './Pagination.vue';
+import Restricted from './Restricted.vue';
 
 const prop = defineProps({
     token: {
@@ -9,6 +13,8 @@ const prop = defineProps({
         required: true,
     }
 });
+
+const pageLoading = ref(true);
 
 const { user, isLoaded, isSignedIn } = useUser();
 const balance = ref(0);
@@ -21,7 +27,12 @@ const depositInfo = ref({
     success: true,
     failureMessage: '',
 });
-const showID = ref(false);
+
+const page = ref(1);
+const perPage = 1;
+const totalPages = ref(100);
+const total = ref(1000);
+const orders = ref<Order[]>([]);
 
 const submit = async () => {
     if (user.value) {
@@ -52,150 +63,329 @@ const submit = async () => {
 };
 
 onMounted(async () => {
+    pageLoading.value = true;
+
     if (user.value) {
         const response = await getBalance(user.value.id, token.value);
         if (response.status === 200) {
             balance.value = response.data?.balance;
         }
+
+        await fetchOrders(page.value, perPage);
     }
+
+    pageLoading.value = false;
 });
+
+watch(page, async () => {
+    await fetchOrders(page.value, perPage);
+});
+
+const fetchOrders = async (local_page: number, per_page: number) => {
+    const orderResponse = await getMyOrders(local_page, per_page, token.value);
+    console.log(orderResponse);
+    if (orderResponse) {
+        totalPages.value = orderResponse.total_pages;
+        total.value = orderResponse.total;
+        orders.value = orderResponse.orders;
+    }
+};
+
+const loadPage = async (new_page: number) => {
+    if (new_page <= totalPages.value && new_page > 0 && new_page !== page.value) {
+        page.value = new_page;
+    }
+};
+
+const formatDate = (date: any) => {
+    return (new Date(date)).toLocaleDateString('en-GB');
+}
 
 </script>
 
 <template>
-    <div v-if="!isLoaded">
-
+    <div v-if="!isLoaded || pageLoading" class="loadingText">
+        Đang tải...
     </div>
     <div v-else-if="!isSignedIn">
-
+        <Restricted :user="'người dùng đăng nhập'" />
     </div>
-    <div v-else class="profileContainer">
-        <!-- basic information -->
-        <div class="userInfo">
-            <img :src="user?.imageUrl || 'https://placehold.co/150x150?text=User+Avatar'">
-            <div>
-                <div class="name">{{ user?.username }}</div>
-                <div class="id">ID: {{ user?.id }}</div>
-                <div class="balance">Số dư: <span>{{ balance.toLocaleString('vi-VN') }} đ</span></div>
+    <div v-else>
+        <div class="profileContainer">
+
+            <!-- Left section: User information -->
+            <div class="userSection">
+                <h2 class="sectionTitle">Thông tin người dùng</h2>
+                <div class="userInfoContainer">
+                    <!-- Image on the left -->
+                    <img :src="user?.imageUrl || 'https://placehold.co/150x150?text=User+Avatar'"
+                        style="width:100px; height:100px; border-radius: 50%; margin-right: 20px;">
+
+                    <!-- Information on the right -->
+                    <div class="userDetails">
+                        <div class="name">Tên: {{ user?.username }}</div>
+                        <div class="id">ID: {{ user?.id }}</div>
+                        <div class="balance">Số dư: <span>{{ balance.toLocaleString('vi-VN') }} đ</span></div>
+                    </div>
+                </div>
+
             </div>
+
+            <!-- Right section: Deposit form -->
+            <div class="depositSection">
+                <h2 class="sectionTitle">Nạp tiền vào ví</h2>
+                <form>
+                    <label for="cardNumber">Số tài khoản</label>
+                    <input type="text" id="cardNumber" placeholder="Số tài khoản" required
+                        v-model="depositInfo.cardNumber">
+
+                    <label for="cvv">CVV</label>
+                    <input type="text" id="cvv" placeholder="Số CVV" required v-model="depositInfo.ccv">
+
+                    <label for="expiryDate">Ngày hết hạn</label>
+                    <input type="text" id="expiryDate" placeholder="Ngày hết hạn của thẻ" required
+                        v-model="depositInfo.expiryDate">
+
+                    <label for="amount">Số tiền nạp vào (VNĐ)</label>
+                    <input type="number" min="0" step="1000" id="amount" required v-model="depositInfo.amount">
+                    <p><strong>Số tiền đã nhập:</strong> {{ depositInfo.amount.toLocaleString('vi-VN') }} đ</p>
+
+                    <div v-if="!depositInfo.success" class="failMessage">Nạp tiền thất bại, lý do {{
+                        depositInfo.failureMessage }}</div>
+                    <button @click.prevent="submit">Nạp tiền</button>
+                </form>
+            </div>
+
         </div>
 
-        <!-- money deposit form -->
-        <form>
-            <h3>Nạp tiền vào ví</h3>
+        <!-- New section: Order list as table -->
 
-            <label for="cardNumber">Số tài khoản</label>
-            <input type="text" id="cardNumber" placeholder="Số tài khoản" required v-model="depositInfo.cardNumber">
+        <div style="display:flex; justify-content: center; width:100%;">
+            <h2 class="sectionTitle" style="width:80%; margin-top:20px;margin-bottom:10px">Danh sách đơn đặt hàng</h2>
+        </div>
+        <div class="orderSection">
+            <div v-if="orders && orders.length === 0" class="noOrdersMessage">
+                <p>Chưa có đơn hàng nào.</p>
+            </div>
+            <div v-else>
+                <table class="orderTable">
+                    <thead>
+                        <tr>
+                            <th>Họ tên</th>
+                            <th>SĐT</th>
+                            <th>Địa chỉ</th>
+                            <th>Sản phẩm</th>
+                            <th>Tổng tiền</th>
+                            <th>Ngày đặt</th>
+                            <th>Tình trạng</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="(order, index) in orders" :key="index">
+                            <td>{{ order.fullName }}</td>
+                            <td>{{ order.phoneNumber }}</td>
+                            <td>{{ order.street }}, {{ order.distreet }}, {{ order.city }}</td>
+                            <td>
+                                <ul>
+                                    <li v-for="(product, index) in order.products" :key="index">{{ product.quantity
+                                        }} x {{
+                                            product.productName }} - {{ product.productPrice.toLocaleString('vi-VN') }} đ
+                                    </li>
+                                </ul>
+                            </td>
+                            <td>{{ order.totalPrice.toLocaleString('vi-VN') }} đ</td>
+                            <td>{{ formatDate(order.createdAt) }}</td>
+                            <td>{{ order.status }}</td>
+                        </tr>
+                    </tbody>
+                </table>
 
-            <label for="cvv">CVV</label>
-            <input type="text" id="cvv" placeholder="Số CVV" required v-model="depositInfo.ccv">
-
-            <label for="expiryDate">Ngày hết hạn</label>
-            <input type="text" id="expiryDate" placeholder="Ngày hết hạn của thẻ" required
-                v-model="depositInfo.expiryDate">
-
-            <label for="amount">Số tiền nạp vào (VNĐ)</label>
-            <input type="number" min="0" step="1" id="amount" required v-model="depositInfo.amount">
-
-            <div v-if="!depositInfo.success" class="failMessage">Nạp tiền thất bại, lý do {{ depositInfo.failureMessage
-                }}</div>
-            <button @click.prevent="submit">Nạp tiền</button>
-        </form>
-
-        <!-- your order list -->
-        <div>
-
+                <Pagination :page="page" :perPage="perPage" :total-pages="totalPages"
+                    @page-change="(new_page) => loadPage(new_page)" />
+            </div>
         </div>
     </div>
 </template>
 
 <style lang="scss" scoped>
-.profileContainer {
+.loadingText {
     display: grid;
-    grid-template-columns: 600px auto;
-    padding: 20px;
-    gap: 20px;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    font-weight: bold;
+    height: 80vh;
+    background: white;
+}
 
-    >* {
-        box-shadow: 0px 0px 5px var(--color-gray);
+.profileContainer {
+    display: flex;
+    gap: 40px;
+    padding: 20px;
+    background: var(--background-gray);
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    justify-content: center;
+}
+
+.userSection {
+    flex: 1;
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    max-width: 500px;
+    /* Reduce width of the sections */
+    width: 100%;
+
+    h2 {
+        margin-bottom: 20px;
+        color: #ffffff;
     }
 
     .userInfo {
-        padding: 1rem;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
+        p {
+            margin: 10px 0;
+            font-size: 16px;
+            color: #555;
 
-        .name {
-            font-size: 1.5rem;
-            font-weight: 600;
-            margin-top: 1rem;
-            margin-bottom: 0.5rem;
-        }
-
-        .id,
-        .balance {
-            font-size: 1.2rem;
-        }
-
-        .balance {
-            margin-top: 10px;
-
-            span {
-                font-weight: 600;
+            strong {
+                color: #333;
             }
         }
-
-        img {
-            width: 150px;
-            height: 150px;
-            object-fit: contain;
-            border-radius: 50%;
-        }
     }
+}
+
+.userInfoContainer {
+    display: flex;
+    align-items: center;
+    /* Vertically align the content */
+    padding: 20px;
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.userDetails {
+    display: flex;
+    flex-direction: column;
+}
+
+.name,
+.id,
+.balance {
+    font-size: 16px;
+    margin-bottom: 10px;
+}
+
+.balance span {
+    font-weight: bold;
+}
+
+.sectionTitle {
+    background-color: var(--ocean-blue);
+    color: white;
+    padding: 10px;
+    text-align: center;
+    border-radius: 5px;
+    margin-bottom: 20px;
+}
+
+.depositSection {
+    flex: 1.5;
+    background: #ffffff;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    max-width: 500px;
+    /* Reduce width of the sections */
+    width: 100%;
 
     form {
-        width: 100%;
-        padding: 1rem 8rem;
-        justify-self: center;
-
-        h3 {
-            margin-bottom: 20px;
+        label {
+            display: block;
+            margin: 10px 0 5px;
+            font-size: 14px;
+            color: #555;
         }
 
-        label,
         input {
             display: block;
-        }
-
-        input {
             width: 100%;
-            margin-bottom: 10px;
-            padding: 0.5rem 1rem;
+            margin-bottom: 15px;
+            padding: 10px;
+            border: 1px solid #ddd;
             border-radius: 5px;
-            border: 1px solid var(--color-gray);
+            font-size: 16px;
+            color: #333;
         }
 
         .failMessage {
-            color: var(--color-red);
+            color: #e74c3c;
+            font-size: 14px;
             margin-bottom: 10px;
         }
 
-        button {
-            background: var(--ocean-blue);
-            color: white;
-            font-weight: bold;
-            border: none;
-            border-radius: 10px;
-            padding: 0.5rem 1rem;
-            transition: 0.2s ease;
-            margin-top: 15px;
+    }
 
-            &:hover {
-                opacity: 0.7;
-            }
-        }
+}
+
+button {
+    display: inline-block;
+    background: #E13737;
+    color: #fff;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background 0.3s;
+
+    &:hover {
+        background: #931e1e;
+    }
+}
+
+.orderSection {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+
+}
+
+.noOrdersMessage {
+    font-size: 16px;
+    color: #555;
+}
+
+.orderTable {
+    width: 100%;
+    margin-bottom: 20px;
+    /* Set the table width to 80% of the parent container */
+    border-collapse: collapse;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+
+    /* Optional: Add a shadow for a better look */
+    th,
+    td {
+        padding: 12px;
+        text-align: left;
+        border: 1px solid #ddd;
+    }
+
+    th {
+        background-color: #007bff;
+        color: white;
+        font-weight: bold;
+    }
+
+    td {
+        font-size: 14px;
+        color: #555;
+    }
+
+    td ul {
+        padding-left: 20px;
     }
 }
 </style>

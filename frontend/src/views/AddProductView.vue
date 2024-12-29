@@ -12,7 +12,7 @@ import { useRouter } from 'vue-router';
 import TwoColumnLayout from '../components/TwoColumnLayout.vue';
 import { useSession, useAuth } from '@clerk/vue';
 import { useUser } from '@clerk/vue';
-import AdminOnly from '../components/AdminOnly.vue';
+import Restricted from '../components/Restricted.vue';
 
 const { user, isLoaded } = useUser();
 const loading = ref(!isLoaded.value);
@@ -187,7 +187,7 @@ const canPost = () => {
 <template>
     <div v-if="loading" class="temp-text">Đang tải...</div>
     <div v-else-if="error">
-        <AdminOnly />
+        <Restricted :user="'admin'" />
     </div>
     <TwoColumnLayout tag="form" v-else>
         <template v-slot:title>

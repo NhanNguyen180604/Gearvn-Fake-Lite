@@ -12,7 +12,7 @@ import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import { faXmark } from '@fortawesome/free-solid-svg-icons';
 import { useSession, useAuth } from '@clerk/vue';
 import { useUser } from '@clerk/vue';
-import AdminOnly from '../components/AdminOnly.vue';
+import Restricted from '../components/Restricted.vue';
 
 const { user, isLoaded } = useUser();
 const loading = ref(true);
@@ -233,7 +233,7 @@ const canPost = () => {
     <div v-if="loading" class="temp-text">Đang tải...</div>
     <div v-else-if="error" class="temp-text">
         <div v-if="errorMessage === 'nuh uh'">
-            <AdminOnly />
+            <Restricted :user="'admin'"/>
         </div>
         <div v-else>
             <div>Đã có lỗi xảy ra trong lúc lấy dữ liệu.</div>
@@ -494,7 +494,7 @@ section {
     font-size: 1.5rem;
     font-weight: bold;
 
-    *{
+    * {
         text-align: center;
     }
 }

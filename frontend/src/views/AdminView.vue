@@ -2,7 +2,7 @@
 import AdminNavbar from '../components/AdminNavbar.vue';
 import { ref, watch, onMounted } from 'vue';
 import { useUser, useAuth, useSession } from '@clerk/vue';
-import AdminOnly from '../components/AdminOnly.vue';
+import Restricted from '../components/Restricted.vue';
 
 const { user, isLoaded } = useUser();
 const { getToken } = useAuth();
@@ -12,7 +12,7 @@ const token = ref<string | null>('');
 const loading = ref(!isLoaded.value);
 const error = ref(false);
 
-// every reload will show AdminOnly even if you are an admin
+// every reload will show Restricted even if you are an admin
 // fucking hell, very spaghetti, kill this shiet as soon as possible
 watch(user, async () => {
     await initialize();
@@ -52,7 +52,7 @@ const initialize = async () => {
 <template>
     <div v-if="loading" class="temp-text">Đang tải...</div>
     <div v-else-if="error">
-        <AdminOnly />
+        <Restricted :user="'admin'"/>
     </div>
     <div v-else>
         <AdminNavbar :token="token" />

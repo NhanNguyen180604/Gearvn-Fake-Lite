@@ -6,9 +6,15 @@ const checkAdmin = require('../../middlewares/checkAdmin');
 
 router.route('/')
     .get(orderController.getOrders);
+    
+router.route('/one')
+    .get(requireAuth({ signInUrl: '/login' }), orderController.getMyOrders);
+
 router.route('/:id')
     .get(requireAuth({ signInUrl: '/login' }), orderController.getOrderById)
     // .delete(orderController.cancelOrder)
     .put(checkAdmin, orderController.updateStatus)
+
+
 
 module.exports = router;

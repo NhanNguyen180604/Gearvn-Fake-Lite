@@ -71,7 +71,8 @@ const getOrders = asyncHandler(async (req, res) => {
 
     const orders = await Order.find(filter)
         .skip(skip)
-        .limit(per_page);
+        .limit(per_page)
+        .sort({ createdAt: -1 });
 
     res.status(200).json({
         orders: orders,
@@ -92,6 +93,51 @@ const getOrderById = asyncHandler(async (req, res) => {
     res.status(200).json(order);
 });
 
+/**
+ * Get orders of a user
+ * @route GET /api/orders/one/:userID
+ * @access logged in only
+ */
+const getMyOrders = asyncHandler(async (req, res) => {
+    const { userId } = req.auth;
+
+    let page = req.query.page || 1;
+    let per_page = req.query.per_page || 20;
+
+    page = parseInt(page);
+    per_page = parseInt(per_page);
+
+    if (isNaN(page) || page < 1) {
+        res.status(400);
+        throw new Error("Invalid page number");
+    }
+
+    if (isNaN(per_page) || per_page < 1) {
+        res.status(400);
+        throw new Error("Invalid per_page number");
+    }
+
+    const filter = { user: userId };
+
+    const total = await Order.countDocuments(filter);
+    const total_pages = Math.ceil(total / per_page);
+    page = Math.min(page, total_pages);
+    page = Math.max(page, 1);
+    const skip = (page - 1) * per_page;
+
+    const orders = await Order.find(filter)
+        .skip(skip)
+        .limit(per_page)
+        .sort({ createdAt: -1 });
+
+    res.status(200).json({
+        orders: orders,
+        page: page,
+        per_page: per_page,
+        total_pages: total_pages,
+        total: total,
+    });
+});
 
 // TODO remake this
 const cancelOrder = asyncHandler(async (req, res) => {
@@ -150,5 +196,6 @@ module.exports = {
     getOrderById,
     cancelOrder,
     getOrders,
+    getMyOrders,
     updateStatus,
 };

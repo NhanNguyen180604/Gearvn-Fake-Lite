@@ -137,27 +137,35 @@ const updateOrderStatusWrapper = async (id: string, status: string) => {
         <div v-else-if="error.error" class="temp-text">{{ error.message }}</div>
         <div v-else>
             <div class="order-container" v-if="orders">
-                <table>
+                <table class="orderTable">
                     <thead>
                         <tr>
                             <th>ID</th>
-                            <th>Tên</th>
+                            <th>Họ tên</th>
                             <th>SĐT</th>
-                            <th>Tình trạng</th>
-                            <th>Ngày đặt</th>
+                            <th>Địa chỉ</th>
+                            <th>Sản phẩm</th>
                             <th>Tổng tiền</th>
-                            <th>Hành động</th>
+                            <th>Ngày đặt</th>
+                            <th>Tình trạng</th>
                         </tr>
                     </thead>
-
-                    <tbody v-if="orders">
-                        <tr v-for="order in orders">
+                    <tbody>
+                        <tr v-for="(order, index) in orders" :key="index">
                             <td>{{ order._id }}</td>
                             <td>{{ order.fullName }}</td>
                             <td>{{ order.phoneNumber }}</td>
-                            <td>{{ order.status }}</td>
+                            <td>{{ order.street }}, {{ order.distreet }}, {{ order.city }}</td>
+                            <td>
+                                <ul>
+                                    <li v-for="(product, index) in order.products" :key="index">{{ product.quantity
+                                        }} x {{
+                                            product.productName }} - {{ product.productPrice.toLocaleString('vi-VN') }} đ
+                                    </li>
+                                </ul>
+                            </td>
+                            <td>{{ order.totalPrice.toLocaleString('vi-VN') }} đ</td>
                             <td>{{ formatDate(order.createdAt) }}</td>
-                            <td>{{ order.totalPrice.toLocaleString() }} VNĐ</td>
                             <td>
                                 <button v-if="order.status === 'Đang chờ'" class="shipping-btn"
                                     @click="() => updateOrderStatusWrapper(order._id, 'Đang giao')">Đang giao</button>
@@ -240,17 +248,34 @@ const updateOrderStatusWrapper = async (id: string, status: string) => {
         font-family: inherit;
         border-collapse: collapse;
 
-        table {
+        .orderTable {
             width: 100%;
-            table-layout: auto;
+            margin-bottom: 20px;
+            /* Set the table width to 80% of the parent container */
+            border-collapse: collapse;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 
-            * {
-                padding: 5px;
+            /* Optional: Add a shadow for a better look */
+            th,
+            td {
+                padding: 12px;
+                text-align: left;
+                border: 1px solid #ddd;
             }
 
             th {
-                font-weight: 600;
-                text-align: start;
+                background-color: #007bff;
+                color: white;
+                font-weight: bold;
+            }
+
+            td {
+                font-size: 14px;
+                color: #555;
+            }
+
+            td ul {
+                padding-left: 20px;
             }
 
             button {
