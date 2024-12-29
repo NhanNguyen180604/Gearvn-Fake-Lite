@@ -82,7 +82,48 @@ const userPay = asyncHandler(async (req, res) => {
 const guestPay = asyncHandler(async (req, res) => {
     try {
         const { fullName, phoneNumber, city, district, street, cardNumber, ccv, expiryDate } = req.body;
+        if (!req.session.guestCart || !req.session.guestCart.length) {
+            res.status(400);
+            throw new Error("Empty cart");
+        }
 
+        const products = [];
+        let totalPrice = 0;
+        req.session.guestCart.forEach(product => {
+            totalPrice += product.price * product.quantity;
+            products.push({
+                productID: product._id,
+                productName: product.name,
+                productPrice: product.price,
+                quantity: product.quantity,
+            });
+        });
+
+        const response = await axiosInstance.post(`/api/payment/${req.params.id}/withdraw`, {
+            amount: totalPrice,
+            cardNumber,
+            ccv,
+            expiryDate,
+        });
+
+        if (response.status === 200 && response.data?.id) {
+            const order = await Order.create({
+                user: req.params.id,
+                products: products,
+                fullName: fullName,
+                phoneNumber: phoneNumber,
+                city: city,
+                district: district,
+                street: street,
+                status: "Đang chờ",
+                totalPrice: totalPrice,
+            });
+            req.session.guestCart = [];
+            res.status(200).json(order);
+        }
+        else {
+            return res.status(response.status).json(response.data)
+        }
     }
     catch (error) {
         if (error.response) {

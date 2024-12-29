@@ -64,6 +64,7 @@ const withdraw = asyncHandler(async (req, res) => {
             id, balance: wallet.balance
         });
 
+        // add money to admin wallet
         const adminWallet = await Wallet.findById(process.env.MAIN_ACCOUNT_ID);
         if (adminWallet) {
             adminWallet.balance += amount;
@@ -85,6 +86,13 @@ const withdrawGuest = asyncHandler(async (req, res) => {
         return res.status(400).json({ message: `Balance is too low (${cardBalance})` });
     }
     res.status(200).json({ success: true });
+
+    // add money to admin wallet
+    const adminWallet = await Wallet.findById(process.env.MAIN_ACCOUNT_ID);
+    if (adminWallet) {
+        adminWallet.balance += amount;
+        await adminWallet.save();
+    }
 });
 
 module.exports = {
