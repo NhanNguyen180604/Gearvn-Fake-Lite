@@ -35,11 +35,15 @@ const getAccounts = asyncHandler(async (req, res) => {
     });
 
     res.status(200).json({
-        users: users.data.map(u => ({
+        // This is very bad, but whatever
+        users: await Promise.all(users.data.map(async u => ({
             id: u.id,
             name: u.username,
-            role: u.publicMetadata.role
-        })),
+            role: u.publicMetadata.role,
+            balance: await fetch(`https://localhost:8000/api/payment/${u.id}`)
+                .then(res => res.json())
+                .then(obj => obj.balance)
+        }))),
         page,
         per_page,
         total_pages: Math.ceil(users.totalCount / per_page),
