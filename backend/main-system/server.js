@@ -26,7 +26,7 @@ app.use(express.urlencoded({ extended: false }));
 app.use(require('../middlewares/initializeUser'));
 
 // routes
-app.use('/api/sub-system', require('./routes/subsystemRoutes'));
+app.use('/api/sub-system', require('./routes/paymentRoutes'));
 app.use('/api/categories', require('./routes/categoryRoutes'));
 app.use('/api/brands', require('./routes/brandRoutes'));
 app.use('/api/products', require('./routes/productRoutes'));

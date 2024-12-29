@@ -46,16 +46,16 @@ const deposit = asyncHandler(async (req, res) => {
  */
 const withdraw = asyncHandler(async (req, res) => {
     const id = req.params.id;
-    const { amount } = req.body;
+    const { cardNumber, cvv, expiryDate, amount } = req.body;
+    // Verify card info here, assume that it succeed
     await mongoose.connection.transaction(async (session) => {
         const wallet = await Wallet.findById(id, null, { session });
         if (!wallet) {
             res.status(404).json({ message: "Wallet not found" })
             return;
         }
-        if (wallet.balance < amount)
-        {
-            res.status(400).json({ message: `Balance is too low (${wallet.balance})`});
+        if (wallet.balance < amount) {
+            res.status(400).json({ message: `Balance is too low (${wallet.balance})` });
             return;
         }
         wallet.balance -= amount;
@@ -66,6 +66,21 @@ const withdraw = asyncHandler(async (req, res) => {
     })
 });
 
+/**
+ * Withdraw money from guest's card
+ * @route /api/payment/guest/withdraw
+ */
+const withdrawGuest = asyncHandler(async (req, res) => {
+    const { cardNumber, cvv, expiryDate, amount } = req.body;
+    // verify card info here, assume success
+    // check if card's balance still have enough money, assume success
+    const cardBalance = amount;
+    if (cardBalance < amount) {
+        return res.status(400).json({ message: `Balance is too low (${cardBalance})` });
+    }
+    res.status(200).json({ success: true });
+});
+
 module.exports = {
-    getBalance, deposit, withdraw
+    getBalance, deposit, withdraw, withdrawGuest,
 }
