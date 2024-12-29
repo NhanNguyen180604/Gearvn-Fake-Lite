@@ -11,6 +11,7 @@ const router = useRouter();
 
 const { user } = useUser();
 const token = ref('');
+const loading = ref(true);
 
 watch(user, async () => {
     await initialize();
@@ -20,6 +21,8 @@ onMounted(async () => {
 });
 
 const initialize = async () => {
+    loading.value = true;
+
     if (user.value) {
         // navigate admin to their page
         if (user.value.publicMetadata.role === 'admin')
@@ -30,6 +33,8 @@ const initialize = async () => {
             token.value = await session.value.getToken({ template: 'test-template' });
         else token.value = await getToken.value({ template: 'test-template' });
     }
+
+    loading.value = false;
 };
 
 </script>
@@ -38,7 +43,7 @@ const initialize = async () => {
     <div style="background-color: var(--background-gray)">
         <userHeader />
 
-        <RouterView v-slot="{ Component, route }">
+        <RouterView v-slot="{ Component, route }" v-if="!loading">
             <component :is="Component" :token="token" />
         </RouterView>
 
