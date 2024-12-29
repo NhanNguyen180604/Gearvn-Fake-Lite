@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import AdminNavbar from '../components/AdminNavbar.vue';
-import { ref, watch } from 'vue';
+import { ref, onMounted } from 'vue';
 import { useUser, useAuth, useSession } from '@clerk/vue';
 import AdminOnly from '../components/AdminOnly.vue';
 
@@ -11,24 +11,38 @@ const token = ref<string | null>('');
 
 const loading = ref(!isLoaded.value);
 const error = ref(false);
-watch(() => isLoaded.value, async () => {
-    if (user.value && user.value.publicMetadata.role !== 'admin') {
-        error.value = true;
-        loading.value = false;
-        return;
-    }
 
-    if (session.value) {
-        token.value = await session.value.getToken({ template: 'test-template' });
-    }
-    else token.value = await getToken.value({ template: 'test-template' });
+onMounted(async () => {
+    await initialize();
+});
 
-    if (!token.value) {
+const initialize = async () => {
+    loading.value = true;
+
+    if (user.value) {
+        // navigate admin to their page
+        if (user.value.publicMetadata.role !== 'admin') {
+            error.value = true;
+            loading.value = false;
+            return;
+        }
+
+        // get user token to pass to pages
+        if (session.value)
+            token.value = await session.value.getToken({ template: 'test-template' });
+        else token.value = await getToken.value({ template: 'test-template' });
+
+        if (!token.value) {
+            error.value = true;
+        }
+        else error.value = false;
+    }
+    else {
         error.value = true;
     }
 
     loading.value = false;
-})
+};
 </script>
 
 <template>

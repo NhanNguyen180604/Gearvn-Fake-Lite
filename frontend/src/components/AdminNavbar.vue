@@ -1,19 +1,27 @@
 <script lang="ts" setup>
-import { defineProps, toRef, onMounted } from 'vue';
+import { defineProps, ref, toRef, onMounted } from 'vue';
+import { getBalance } from '../services/walletService';
+import { useUser } from '@clerk/vue';
 
-const props = defineProps({
+const prop = defineProps({
     token: {
         type: [String, null],
         required: true,
     }
 });
 
-const token = toRef(props);
-// console.log(token.value.token);
-
+const { user } = useUser();
+const token = toRef(prop.token);
+const balance = ref(0);
 onMounted(async () => {
-    
+    if (user.value) {
+        const response = await getBalance(user.value.id, token.value);
+        if (response.status === 200) {
+            balance.value = response.data?.balance;
+        }
+    }
 });
+
 </script>
 
 <template>
@@ -28,7 +36,7 @@ onMounted(async () => {
         </nav>
 
         <div class="balance">
-            Balance
+            {{ balance.toLocaleString('vi-VN') }} đ
         </div>
     </div>
 
