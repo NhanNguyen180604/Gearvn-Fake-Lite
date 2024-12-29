@@ -16,6 +16,8 @@ import AddBrand from "../views/AddBrand.vue";
 import ProductDetail from "../components/productDetail.vue";
 import searchResult from "../components/searchProduct.vue";
 import Profile from "../components/Profile.vue";
+import statistic from "../components/statistic.vue";
+
 
 export const router = createRouter({
 	history: createWebHistory(),
@@ -52,6 +54,7 @@ export const router = createRouter({
 					name: "profile",
 					component: Profile,
 				},
+
 			],
 		},
 		{
@@ -77,7 +80,7 @@ export const router = createRouter({
 				{
 					path: "statistics",
 					name: "adminStatistics",
-					component: HelloWorld, // put statistics here, wtf is statistics
+					component: statistic, // put statistics here, wtf is statistics
 				},
 				{
 					path: "categories",
