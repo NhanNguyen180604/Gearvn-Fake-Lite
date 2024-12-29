@@ -1,15 +1,18 @@
 <script lang="ts" setup>
-import { onMounted, ref, watch } from 'vue';
+import { onMounted, ref, toRef, watch } from 'vue';
 import { getAccounts, deleteAccount } from '../services/accountService';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import { faSearch } from '@fortawesome/free-solid-svg-icons';
 import { type Account } from "../types/accountType";
 import Pagination from './Pagination.vue';
-import { useSession, useAuth } from '@clerk/vue';
 
-const { getToken } = useAuth();
-const { session } = useSession();
-const token = ref<string | null>(null);
+const prop = defineProps({
+    token: {
+        type: String,
+        required: true,
+    }
+});
+const token = toRef(prop.token);
 
 const loading = ref(true);
 const error = ref({
@@ -36,7 +39,6 @@ const fetchData = async (local_page: number, per_page: number) => {
             if (response.page !== page.value) {
                 page.value = response.page;
             }
-            console.log(response);
         }
         else {
             error.value = {
@@ -54,10 +56,6 @@ const fetchData = async (local_page: number, per_page: number) => {
 };
 
 onMounted(async () => {
-    if (session.value)
-        token.value = await session.value.getToken({ template: 'test-template' });
-    else token.value = await getToken.value({ template: 'test-template' });
-
     if (!token.value) {
         error.value = {
             error: true,
@@ -127,6 +125,7 @@ const deleteAccountWrapper = async (id: string) => {
                             <div>ID: {{ account.id }}</div>
                             <div>Tên: {{ account.name }}</div>
                             <div>Role: {{ account.role }}</div>
+                            <div>Số dư: {{ account.balance.toLocaleString('vi-VN') }} đ</div>
                         </div>
                         <div class="accountBTN" v-if="account.role !== 'admin'">
                             <button class="deleteBTN" @click="deleteAccountWrapper(account.id)">Xóa</button>

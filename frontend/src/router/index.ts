@@ -15,6 +15,7 @@ import AddCategory from "../views/AddCategory.vue";
 import AddBrand from "../views/AddBrand.vue";
 import ProductDetail from "../components/productDetail.vue";
 import searchResult from "../components/searchProduct.vue";
+import Profile from "../components/Profile.vue";
 
 export const router = createRouter({
 	history: createWebHistory(),
@@ -45,6 +46,11 @@ export const router = createRouter({
 					name: "searchProduct",
 					component: searchResult,
 					props: true, // Allow route params as props
+				},
+				{
+					path: "/profile",
+					name: "profile",
+					component: Profile,
 				},
 			],
 		},

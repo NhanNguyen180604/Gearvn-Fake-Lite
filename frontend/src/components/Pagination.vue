@@ -134,7 +134,7 @@ const goToPage = () => {
 }
 
 .navigation {
-    margin-top: 10px;
+    margin: 10px 0;
     @extend .flex-center;
     gap: 5px;
 

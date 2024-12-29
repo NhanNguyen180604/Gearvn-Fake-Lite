@@ -189,8 +189,7 @@ const submit = async () => {
                     URL.revokeObjectURL(image.objectURL);
             });
 
-            // view that product
-            router.push(`/products/${response.data._id}`);
+            router.push(`/admin/products`);
         }
         else {
             console.log("Failed to update product");

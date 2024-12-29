@@ -1,13 +1,17 @@
 <script lang="ts" setup>
-import { onMounted, ref, watch } from 'vue';
+import { onMounted, ref, toRef, watch } from 'vue';
 import { type Order } from '../types/orderType';
 import { getOrders, updateOrderStatus } from '../services/orderService';
 import Pagination from './Pagination.vue';
-import { useSession, useAuth } from '@clerk/vue';
 
-const { getToken } = useAuth();
-const { session } = useSession();
-const token = ref<string | null>(null);
+const prop = defineProps({
+    token: {
+        type: String,
+        required: true,
+    }
+});
+
+const token = toRef(prop.token);
 
 const loading = ref(true);
 const error = ref({
@@ -54,10 +58,6 @@ const fetchData = async (local_page: number, per_page: number) => {
 };
 
 onMounted(async () => {
-    if (session.value)
-        token.value = await session.value.getToken({ template: 'test-template' });
-    else token.value = await getToken.value({ template: 'test-template' });
-
     if (token.value)
         await fetchData(page.value, perPage);
     else {

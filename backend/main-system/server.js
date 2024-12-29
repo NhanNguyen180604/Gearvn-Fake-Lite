@@ -34,6 +34,7 @@ app.use('/api/ratings', require('./routes/ratingRoutes'));
 app.use('/api/carts', require('./routes/cartRoutes'));
 app.use('/api/orders', require('./routes/orderRoutes'));
 app.use('/api/accounts', require('./routes/accountRoutes'));
+app.use('/api/wallet', require('./routes/walletRoutes'));
 
 // error handling
 app.use(require('../middlewares/errorHandler'));

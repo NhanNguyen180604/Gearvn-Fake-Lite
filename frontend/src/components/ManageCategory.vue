@@ -1,15 +1,19 @@
 <script lang="ts" setup>
-import { onMounted, ref, watch } from 'vue';
+import { onMounted, ref, toRef, watch } from 'vue';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import { faSearch } from '@fortawesome/free-solid-svg-icons';
 import { getCategories, deleteCategory } from '../services/categoryService';
 import { type Category } from '../types/categoryType';
 import { useRouter } from 'vue-router';
-import { useSession, useAuth } from '@clerk/vue';
 
-const { getToken } = useAuth();
-const { session } = useSession();
-const token = ref<string | null>(null);
+const prop = defineProps({
+    token: {
+        type: String,
+        required: true,
+    }
+});
+
+const token = toRef(prop.token);
 
 const router = useRouter();
 const loading = ref(true);
@@ -45,10 +49,6 @@ const fetchData = async () => {
 };
 
 onMounted(async () => {
-    if (session.value)
-        token.value = await session.value.getToken({ template: 'test-template' });
-    else token.value = await getToken.value({ template: 'test-template' });
-
     if (!token.value) {
         error.value = {
             error: true,
