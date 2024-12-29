@@ -54,6 +54,7 @@ const userPay = asyncHandler(async (req, res) => {
                 status: "Đang chờ",
                 totalPrice: totalPrice,
             });
+            res.status(200).json(order);
         }
     }
     catch (error) {
