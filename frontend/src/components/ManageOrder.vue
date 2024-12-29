@@ -281,6 +281,7 @@ const updateOrderStatusWrapper = async (id: string, status: string) => {
             button {
                 width: 100%;
                 border-radius: 15px;
+                padding: 4px 12px;
                 border: none;
                 font-weight: bold;
                 transition: 0.2s ease;
@@ -291,6 +292,10 @@ const updateOrderStatusWrapper = async (id: string, status: string) => {
 
                 &:not(:disabled):hover {
                     opacity: 0.7;
+                }
+
+                &:disabled{
+                    opacity: 0.5;
                 }
             }
 

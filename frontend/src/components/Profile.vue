@@ -112,7 +112,6 @@ const formatDate = (date: any) => {
     </div>
     <div v-else>
         <div class="profileContainer">
-
             <!-- Left section: User information -->
             <div class="userSection">
                 <h2 class="sectionTitle">Thông tin người dùng</h2>
@@ -155,7 +154,6 @@ const formatDate = (date: any) => {
                     <button @click.prevent="submit">Nạp tiền</button>
                 </form>
             </div>
-
         </div>
 
         <!-- New section: Order list as table -->
@@ -195,7 +193,14 @@ const formatDate = (date: any) => {
                             </td>
                             <td>{{ order.totalPrice.toLocaleString('vi-VN') }} đ</td>
                             <td>{{ formatDate(order.createdAt) }}</td>
-                            <td>{{ order.status }}</td>
+                            <td>
+                                <button v-if="order.status === 'Đang chờ'" class="shipping-btn" disabled>
+                                    Đang giao
+                                </button>
+                                <button v-else="order.status === 'Đang giao'" class="shipped-btn" disabled>
+                                    Đã giao
+                                </button>
+                            </td>
                         </tr>
                     </tbody>
                 </table>
@@ -206,6 +211,7 @@ const formatDate = (date: any) => {
         </div>
     </div>
 </template>
+
 
 <style lang="scss" scoped>
 .loadingText {
@@ -326,23 +332,21 @@ const formatDate = (date: any) => {
             margin-bottom: 10px;
         }
 
-    }
+        button {
+            display: inline-block;
+            background: #E13737;
+            color: #fff;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.3s;
 
-}
-
-button {
-    display: inline-block;
-    background: #E13737;
-    color: #fff;
-    padding: 10px 20px;
-    border: none;
-    border-radius: 5px;
-    font-size: 16px;
-    cursor: pointer;
-    transition: background 0.3s;
-
-    &:hover {
-        background: #931e1e;
+            &:hover {
+                background: #931e1e;
+            }
+        }
     }
 }
 
@@ -350,7 +354,6 @@ button {
     display: flex;
     justify-content: center;
     width: 100%;
-
 }
 
 .noOrdersMessage {
@@ -386,6 +389,37 @@ button {
 
     td ul {
         padding-left: 20px;
+    }
+
+    button {
+        width: 100%;
+        border-radius: 15px;
+        border: none;
+        font-weight: bold;
+        transition: 0.2s ease;
+        padding: 4px 12px;
+
+        &:not(:disabled) {
+            cursor: pointer;
+        }
+
+        &:not(:disabled):hover {
+            opacity: 0.7;
+        }
+    }
+
+    .shipping-btn {
+        background: var(--admin-paging-color);
+        color: white;
+    }
+
+    .shipped-btn {
+        background: var(--color-yellow);
+
+        &:disabled {
+            background: var(--light-green);
+            color: white;
+        }
     }
 }
 </style>
