@@ -26,7 +26,7 @@ const deposit = asyncHandler(async (req, res) => {
     const id = req.params.id;
     const { cardNumber, cvv, expiryDate, amount } = req.body;
     await mongoose.connection.transaction(async (session) => {
-        const wallet = await Wallet.findById(id, { session });
+        const wallet = await Wallet.findById(id, null, { session });
         if (!wallet) {
             res.status(404).json({ message: "Wallet not found" })
             return;
@@ -48,7 +48,7 @@ const withdraw = asyncHandler(async (req, res) => {
     const id = req.params.id;
     const { amount } = req.body;
     await mongoose.connection.transaction(async (session) => {
-        const wallet = await Wallet.findById(id, { session });
+        const wallet = await Wallet.findById(id, null, { session });
         if (!wallet) {
             res.status(404).json({ message: "Wallet not found" })
             return;
