@@ -11,8 +11,16 @@ const getCart = asyncHandler(async (req, res) => {
     // get user id here then get the cart
     const { userId } = req.auth;
 
-    const cart = await Cart.findOne({ user: userId })
+    let cart = await Cart.findOne({ user: userId })
         .populate({ path: 'products.productID', model: 'Product' });
+
+    if (!cart) {
+        cart = await Cart.create({
+            user: userId,
+            products: [],
+        });
+    }
+
     res.status(200).json(cart);
 });
 
