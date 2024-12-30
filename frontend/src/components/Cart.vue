@@ -1,12 +1,10 @@
 <script lang="ts" setup>
-import {computed, ref, onMounted, onBeforeUnmount, watch} from "vue";
+import {computed, ref, onMounted} from "vue";
 import 'primeicons/primeicons.css';
-import { SignIn, UserButton } from "@clerk/vue";
 import { deleteCart, getCart, putCart } from "../services/cartService";
-import { useAuth, useSession } from "@clerk/vue";
-const session = useSession();
 import { onBeforeRouteLeave, RouterLink } from "vue-router";
 import { deleteGuestCart, getGuestCart, putGuestCart } from "../services/guestCartService";
+import { router } from "../router";
 const taisaophaithembien = defineProps({
   token: {
       type: String,
@@ -39,6 +37,9 @@ const validateQuantity = (index: number) => {
     cartItems.value[index].quantity = 1;
   }
 };
+const handleMoveToDetails = (id) => {
+  router.push(`/products/${id}`)
+}
   
   onMounted(async () => {
     if(taisaophaithembien.token){
@@ -123,8 +124,8 @@ const validateQuantity = (index: number) => {
       <!-- Cart Items -->
       <div v-else>
         <div v-for="(item, index) in cartItems" :key="index" class="cart-item">
-          <div class="item-details">
-            <img :src="item.image" alt="Product Image" class="item-image" />
+          <div class="item-details" @click="handleMoveToDetails(item._id)">
+            <img :src="item.image" alt="Product Image" class="item-image"/>
             <div>
               <h2 class="item-name">{{ item.name }}</h2>
               <p class="item-price">Giá: {{ formatPrice(item.price) }} </p>
@@ -145,8 +146,9 @@ const validateQuantity = (index: number) => {
         </div>
         <!-- Empty Cart -->
         <div v-if="cartItems.length === 0" class="empty-cart">
+          <i class="pi pi-cart-minus"></i>
           <p>Your cart is empty.</p>
-          <RouterLink to="/" class="go-shopping">Go Shopping</RouterLink>
+          <RouterLink to="/" class="shopping-btn">Go Shopping</RouterLink>
         </div>
         <!-- Total -->
         <div class="cart-total" v-if="cartItems.length > 0">
@@ -211,6 +213,7 @@ $warning: var(--color-red);
         display: flex;
         align-items: center;
         margin: 2rem 0;
+        cursor: pointer;
         
         .item-check {
           width: 1.25rem;
@@ -242,6 +245,7 @@ $warning: var(--color-red);
         align-items: center;
 
         .quantity-btn {
+          width: 2rem;
           background: #f1f1f1;
           border: 1px solid #ccc;
           padding: 0.1rem 0.5rem;
@@ -329,6 +333,32 @@ $warning: var(--color-red);
           color: #0056b3;
         }
       }
+      i{
+        font-size: 10rem;
+        color: black;
+      }
+      p{
+        font-size: 3rem;
+        color: black;
+      }
+      .shopping-btn{
+    text-decoration: none;
+    display: block;
+    width: fit-content;
+    margin: 0 auto;
+    padding: 1rem 3rem;
+    border: none;
+    border-radius: 3rem;
+    font-weight: bold;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    background-color: $warning;
+    color: white;
+    &:hover {
+        background-color: lighten(red, 20%);
+    }
+  }
     }
   }
 }

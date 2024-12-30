@@ -1,4 +1,10 @@
 <template>
+  <div v-if="show" class="popup success">
+        <i class='pi pi-check-circle'></i>
+        <p>Thêm sản phẩm vào giỏ hàng thành công</p>
+        <button @click="handleMoveToCart" class= 'success-btn'>Xem giỏ hàng</button>
+        <button @click="handleResultClick" class = 'success-btn'>Đóng</button>
+  </div>
   <div>
     <div class="product-detail container">
       <!-- Product Info Section -->
@@ -62,7 +68,8 @@
   </div>
 </template>
 
-<style scoped>
+<style lang="scss" scoped>
+$warning: var(--color-red);
 .image-gallery {
   position: relative;
 }
@@ -110,6 +117,55 @@
   object-fit: cover;
   /* Maintain aspect ratio while covering the space */
 }
+  .success-btn{
+    width: 15rem;
+    display: block;
+    margin: 0 auto;
+    margin-top: 1rem;
+    padding: 1rem 3rem;
+    border: none;
+    border-radius: 3rem;
+    font-weight: bold;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    background-color: green;
+    color: white;
+    &:hover {
+        background-color: lighten(green, 10%);
+    }
+  }
+
+  .popup {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  padding: 5rem 2rem;
+  background-color: white;
+  border: 1px solid #ccc;
+  border-radius: 1rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+  i{
+    display: block;
+    font-size: 5rem;
+    text-align: center;
+    margin-bottom: 2rem;
+  }
+  p{
+    text-align: center;
+    font-size: 3rem;
+  }
+  }
+  
+  .popup.success {
+  border-color: green;
+  i{
+    color: green;
+  }
+  }
+  
 </style>
 
 
@@ -121,6 +177,7 @@ import { putCart } from '../services/cartService';
 import { useSession } from '@clerk/vue';
 import axios from 'axios';
 import { getGuestCart, putGuestCart } from '../services/guestCartService';
+import { router } from '../router';
 
 const session = useSession();
 axios.defaults.withCredentials = true;
@@ -137,6 +194,8 @@ const route = useRoute();
 const product = ref<any | null>(null); // Product details object
 const similarProducts = ref<any[]>([]); // List of similar products
 const currentImage = ref<string>(''); // To hold the current image URL for the gallery
+
+const show = ref(false);
 
 // Function to fetch product details by ID
 const fetchProductDetails = async () => {
@@ -161,6 +220,7 @@ const fetchSimilarProducts = async (category: string) => {
     console.error('Failed to fetch similar products:', error);
   }
 };
+
 
 // Load product details and similar products when component is mounted
 onMounted(async () => {
@@ -193,15 +253,19 @@ const nextImage = () => {
 // Add product to cart (assuming you have a cart service)
 const addToCart = async (productId) => {
   if (props.token) {
-    const res = await putCart(props.token, [{ _id: productId, quantity: 1 }]);
-    console.log(res)
+    await putCart(props.token, [{ _id: productId, quantity: 1 }]);
   }
   else {
-    const response = await putGuestCart([{ _id: productId, quantity: 1 , name: product.value.name, price: product.value.price, max: product.value.stock, image:product.value.images[0]?.url||"https://via.placeholder.com/150"}])
-    console.log(response)
-    console.log(await getGuestCart())
+    await putGuestCart([{ _id: productId, quantity: 1 , name: product.value.name, price: product.value.price, max: product.value.stock, image:product.value.images[0]?.url||"https://via.placeholder.com/150"}]); 
   }
+  show.value = true;
 };
+const handleResultClick = () => {
+    show.value = false;
+};
+const handleMoveToCart = () => {
+  router.push('/cart');
+}
 const formatPrice = (price: number) => {
   return price.toLocaleString('vi-VN') + ' đ';
 };
