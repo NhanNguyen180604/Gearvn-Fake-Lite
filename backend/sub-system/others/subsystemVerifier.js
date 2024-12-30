@@ -5,7 +5,8 @@ if (!process.env.SUB_VERIFY_PUBLIC_KEY)
 const publicKey = createPublicKey({
     key: process.env.SUB_VERIFY_PUBLIC_KEY,
     format: "der",
-    type: "spki"
+    type: "spki",
+    encoding: "hex"
 });
 
 const verify = (
