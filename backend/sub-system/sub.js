@@ -12,10 +12,10 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
+app.use(require("./middleware/verifyRequest"));
 app.use('/api/payment', require('./routes/paymentRoutes'));
 
 app.use(require('../middlewares/errorHandler'));
-app.use(require("./middleware/verifyRequest"));
 
 const options = {
     key: fs.readFileSync(path.join(__dirname, './sslkeys/sub_key.pem')),

@@ -4,6 +4,7 @@ const Order = require('../../models/orderModel');
 const Cart = require('../../models/cartModel');
 const Product = require('../../models/productModel');
 const { clearCartHelper } = require('../controllers/cartController');
+const { sign } = require("../others/subsystemSigner");
 
 /**
  * Logged in user pays 
@@ -12,8 +13,6 @@ const { clearCartHelper } = require('../controllers/cartController');
 const userPay = asyncHandler(async (req, res) => {
     try {
         const { fullName, phoneNumber, city, district, street, cardNumber, cvv, expiryDate } = req.body;
-        const token = await req.auth.getToken();
-
         const cart = await Cart.findOne({ user: req.params.id });
         const products = [];
         let totalPrice = 0;
@@ -33,13 +32,16 @@ const userPay = asyncHandler(async (req, res) => {
             throw new Error("Product empty");
         }
 
+        const payload = { amount: totalPrice };
+        const timestamp = Date.now();
         const response = await axiosInstance.post(`/api/payment/${req.params.id}/withdraw`,
+            payload,
             {
-                amount: totalPrice,
-                cardNumber,
-                cvv,
-                expiryDate,
-            },
+                headers: {
+                    "X-Signature": sign(JSON.stringify(payload), timestamp),
+                    "X-Timestamp": timestamp.toString()
+                }
+            }
         );
 
         if (response.status === 200 && response.data?.id) {
@@ -94,12 +96,22 @@ const guestPay = asyncHandler(async (req, res) => {
             });
         });
 
-        const response = await axiosInstance.post(`/api/payment/guest/withdraw`, {
+        const payload = {
             amount: totalPrice,
             cardNumber,
             cvv,
             expiryDate,
-        });
+        }
+        const timestamp = Date.now();
+        const response = await axiosInstance.post(`/api/payment/guest/withdraw`,
+            payload,
+            {
+                headers: {
+                    "X-Signature": sign(JSON.stringify(payload), timestamp),
+                    "X-Timestamp": timestamp.toString()
+                }
+            }
+        );
 
         if (response.status === 200 && response.data?.success) {
             const order = await Order.create({

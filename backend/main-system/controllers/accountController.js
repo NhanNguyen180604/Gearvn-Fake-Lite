@@ -1,7 +1,7 @@
-const checkAdmin = require("../../middlewares/checkAdmin");
 const asyncHandler = require('express-async-handler');
 const { clerkClient, getAuth } = require("@clerk/express");
 const axiosInstance = require('../../axios-config/axios-config');
+const { sign } = require("../others/subsystemSigner");
 
 /**
  * Get accounts
@@ -35,13 +35,22 @@ const getAccounts = asyncHandler(async (req, res) => {
         query: req.query.q,
     });
 
+    const message = "{}";
+    const timestamp = Date.now();
     res.status(200).json({
         // This is very bad, but whatever
         users: await Promise.all(users.data.map(async u => ({
             id: u.id,
             name: u.username,
             role: u.publicMetadata.role,
-            balance: (await axiosInstance.get(`https://localhost:8000/api/payment/${u.id}`)).data.balance
+            balance: (
+                await axiosInstance.get(`https://localhost:8000/api/payment/${u.id}`, {
+                    headers: {
+                        "X-Signature": sign(message, timestamp),
+                        "X-Timestamp": timestamp.toString()
+                    }
+                })
+            ).data.balance
         }))),
         page,
         per_page,

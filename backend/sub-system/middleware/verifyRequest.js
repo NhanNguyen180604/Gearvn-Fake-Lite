@@ -1,7 +1,7 @@
 const { verify } = require("../others/subsystemVerifier");
 
 const verifyRequest = async (req, res, next) => {
-    const message = req.body ? JSON.stringify(req.body) : "";
+    const message = JSON.stringify(req.body);
     const timestamp = req.header("X-Timestamp");
     const signature = req.header("X-Signature");
     if (!timestamp || !signature)

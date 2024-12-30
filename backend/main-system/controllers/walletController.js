@@ -1,18 +1,26 @@
 const asyncHandler = require('express-async-handler');
 const { clerkClient, getAuth } = require("@clerk/express");
 const axiosInstance = require('../../axios-config/axios-config');
+const { sign } = require("../others/subsystemSigner");
 
 const postDeposit = asyncHandler(async (req, res) => {
     try {
         const { id } = req.params;
         const { cardNumber, expiryDate, ccv, amount } = req.body;
-        const token = await req.auth.getToken();
+        const timestamp = Date.now();
+        const payload = {
+            cardNumber,
+            expiryDate,
+            ccv,
+            amount: parseInt(amount),
+        }
         const response = await axiosInstance.post(`/api/payment/${id}/deposit`,
+            payload,
             {
-                cardNumber,
-                expiryDate,
-                ccv,
-                amount: parseInt(amount),
+                headers: {
+                    "X-Signature": sign(JSON.stringify(payload), timestamp),
+                    "X-Timestamp": timestamp.toString()
+                }
             },
         );
         res.status(response.status).json(response.data);
@@ -29,7 +37,14 @@ const postDeposit = asyncHandler(async (req, res) => {
 const getBalance = asyncHandler(async (req, res) => {
     try {
         const { id } = req.params;
-        const response = await axiosInstance.get(`/api/payment/${id}`);
+        const timestamp = Date.now();
+        const message = "{}";
+        const response = await axiosInstance.get(`/api/payment/${id}`, {
+            headers: {
+                "X-Signature": sign(message, timestamp),
+                "X-Timestamp": timestamp.toString()
+            }
+        });
         res.status(response.status).json(response.data);
     }
     catch (error) {
