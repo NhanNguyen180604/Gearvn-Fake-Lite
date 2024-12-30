@@ -1,8 +1,9 @@
 <template>
     <div v-if="show" class="popup" :class="type">
-        <!-- <p>{{ message }}</p> -->
-        <p>Bạn đã chuyển tiền thành công</p>
-        <button @click="closePopup">Close</button>
+        <i :class="type === 'success' ? 'pi pi-check-circle' : 'pi pi-times-circle'"></i>
+        <p>{{ message }}</p>
+        <button @click="handleResultClick" :class="type === 'success' ? 'success-btn' : 'error-btn'"
+            v-text="(type === 'success' && props.token) ? 'Xem lại lịch sử thanh toán' : 'Đóng'"></button>
     </div>
     <div class="payment-container">
         <h1>Thanh toán</h1>
@@ -26,7 +27,7 @@
             </div>
         </div>
 
-        <form class="payment-form">
+        <form @submit.prevent="handlePayment" class="payment-form">
             <h2 style="margin-top: 0;">Thông tin khách hàng</h2>
             <div class="form-row">
                 <div class="form-group">
@@ -85,15 +86,14 @@
                 </div>
             </div>
 
-            <button type="submit" class="submit-btn" @click="handlePayment" :disabled="!canPay()">
-                Xác nhận thanhtoán
-            </button>
+            <button type="submit" class="submit-btn" @click="handlePayment" :disabled="!canPay()">Xác nhận thanh
+                toán</button>
         </form>
     </div>
 </template>
 
 <script setup lang="ts">
-import { useSession, useUser, SignedIn } from '@clerk/vue';
+import { useUser, SignedIn } from '@clerk/vue';
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { getCart } from '../services/cartService';
@@ -103,7 +103,7 @@ import { type CartItem } from '../types/cartType';
 import { type PaymentInfo } from '../types/paymentInfoType';
 const show = ref(false);
 const message = ref('');
-const type = ref('success');
+const type = ref('');
 const { user } = useUser();
 const id = user.value?.id;
 
@@ -150,9 +150,6 @@ const showPopup = (msg: string, popupType: string) => {
     show.value = true;
 };
 
-const closePopup = () => {
-    show.value = false;
-};
 
 const totalAmount = computed((): number => {
     return cartItems.value.reduce((total, item) => {
@@ -166,16 +163,33 @@ const formatPrice = (price: number): string => {
 
 const paying = ref(false);
 const handlePayment = async () => {
+    console.log(paymentInfo.value);
     paying.value = true;
+    let res;
     if (props.token) {
-        const res = await userPay(props.token, id ? id : null, paymentInfo.value);
-        console.log(res)
+        res = await userPay(props.token, id, paymentInfo.value);
+        console.log(res);
     }
     else {
-        const res = await guestPay(paymentInfo.value);
+        res = await guestPay(paymentInfo.value);
         console.log(res);
     }
     paying.value = false;
+    if (res.status === 200) {
+        showPopup("Bạn đã thanh toán thành công!!!", 'success');
+    }
+    else {
+        showPopup(res.message?.message, 'error');
+    }
+}
+
+const handleResultClick = () => {
+    if (type.value === 'success' && props.token) {
+        router.push('/profile');
+    }
+    else {
+        show.value = false;
+    }
 }
 
 const checkNotEmptyString = (str: string) => {
@@ -315,26 +329,45 @@ $warning: var(--color-red);
     }
 }
 
-.submit-btn {
+button {
     display: block;
     margin: 0 auto;
     padding: 1rem 3rem;
-    background-color: $warning;
-    color: white;
     border: none;
     border-radius: 3rem;
     font-weight: bold;
     font-size: 1rem;
+    cursor: pointer;
     transition: background-color 0.3s;
+}
 
-    &:not(:disabled):hover {
+.submit-btn {
+    background-color: $warning;
+    color: white;
+
+    &:hover {
         background-color: lighten(red, 20%);
     }
+}
 
-    &:disabled {
-        opacity: 0.5;
+.success-btn {
+    background-color: green;
+    color: white;
+
+    &:hover {
+        background-color: lighten(green, 10%);
     }
 }
+
+.error-btn {
+    background-color: $warning;
+    color: white;
+
+    &:hover {
+        background-color: lighten(red, 20%);
+    }
+}
+
 
 .cart-container {
     margin: 0 auto;
@@ -418,19 +451,40 @@ $warning: var(--color-red);
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    padding: 1rem;
+    padding: 5rem 2rem;
     background-color: white;
     border: 1px solid #ccc;
+    border-radius: 1rem;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     z-index: 1000;
+
+    i {
+        display: block;
+        font-size: 5rem;
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+
+    p {
+        text-align: center;
+        font-size: 3rem;
+    }
 }
 
 .popup.success {
     border-color: green;
+
+    i {
+        color: green;
+    }
 }
 
 .popup.error {
-    border-color: red;
+    border-color: $warning;
+
+    i {
+        color: $warning;
+    }
 }
 
 .popup button {
