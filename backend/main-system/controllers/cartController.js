@@ -90,7 +90,7 @@ const clearCart = asyncHandler(async (req, res) => {
  * @param {string} user - user's id
  * @param {boolean} restock - set to true to restock the products if the customer decided not to buy
  */
-const clearCartHelper = asyncHandler(async (user, restock) => {
+const clearCartHelper = async (user, restock) => {
     const cart = await Cart.findOne({ user: user });
     if (restock) {
         for (const product of cart.products) {
@@ -102,7 +102,7 @@ const clearCartHelper = asyncHandler(async (user, restock) => {
     cart.products = [];
     await cart.save();
     return cart;
-});
+};
 
 module.exports = {
     getCart,
