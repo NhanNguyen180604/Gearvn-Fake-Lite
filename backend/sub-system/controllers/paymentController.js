@@ -25,12 +25,6 @@ const getBalance = asyncHandler(async (req, res) => {
 const deposit = asyncHandler(async (req, res) => {
     const id = req.params.id;
     const { cardNumber, cvv, expiryDate, amount } = req.body;
-    // Verify card info here, assume that it succeed
-    // if (!isValidCardNumber(cardNumber) || !isValidCVV(cvv) || !isValidExpiryDate(expiryDate)) {
-    //     res.status(400);
-    //     throw new Error("Invalid card info");
-    // }
-
     await mongoose.connection.transaction(async (session) => {
         const wallet = await Wallet.findById(id, null, { session });
         if (!wallet) {
@@ -58,16 +52,15 @@ const withdraw = asyncHandler(async (req, res) => {
         res.status(400);
         throw new Error("Invalid card info");
     }
-
     await mongoose.connection.transaction(async (session) => {
         const wallet = await Wallet.findById(id, null, { session });
         console.log(wallet, amount);
         if (!wallet) {
-            res.status(404).json({ message: "Wallet not found" })
+            res.status(404).json({ message: "Không tìm thấy ví của bạn" })
             return;
         }
         if (wallet.balance < amount) {
-            res.status(400).json({ message: `Balance is too low (${wallet.balance})` });
+            res.status(400).json({ message: `Số dư không đủ (${wallet.balance}) đ` });
             return;
         }
         wallet.balance -= amount;
@@ -99,7 +92,7 @@ const withdrawGuest = asyncHandler(async (req, res) => {
     // check if card's balance still have enough money, assume success
     const cardBalance = amount;
     if (cardBalance < amount) {
-        return res.status(400).json({ message: `Balance is too low (${cardBalance})` });
+        return res.status(400).json({ message: `Số dư không đủ (${cardBalance}) đ` });
     }
     res.status(200).json({ success: true });
 

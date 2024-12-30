@@ -26,8 +26,7 @@
                 <h3>Tổng thành tiền: {{ formatPrice(totalAmount) }}</h3>
             </div>
         </div>
-
-        <form @submit.prevent="handlePayment" class="payment-form">
+        <form class="payment-form">
             <h2 style="margin-top: 0;">Thông tin khách hàng</h2>
             <div class="form-row">
                 <div class="form-group">
@@ -73,7 +72,6 @@
                     <label>Card Number</label>
                     <input type="text" v-model="paymentInfo.cardNumber" required />
                 </div>
-
             </div>
             <div class="form-row">
                 <div class="form-group">
@@ -144,6 +142,7 @@ const paymentInfo = ref<PaymentInfo>({
     cvv: '',
     expiryDate: '',
 });
+
 const showPopup = (msg: string, popupType: string) => {
     message.value = msg;
     type.value = popupType;
@@ -163,8 +162,8 @@ const formatPrice = (price: number): string => {
 
 const paying = ref(false);
 const handlePayment = async () => {
-    console.log(paymentInfo.value);
     paying.value = true;
+    console.log(paymentInfo.value);
     let res;
     if (props.token) {
         res = await userPay(props.token, id, paymentInfo.value);
@@ -192,6 +191,7 @@ const handleResultClick = () => {
     }
 }
 
+
 const checkNotEmptyString = (str: string) => {
     return !!(str.length && str.trim().length);
 };
@@ -200,7 +200,6 @@ const isValidCardNumber = (cardNumber: string): boolean => {
     if (!/^\d{13,19}$/.test(cardNumber)) return false; // 13-19 digits
     let sum = 0;
     let shouldDouble = false;
-
     for (let i = cardNumber.length - 1; i >= 0; i--) {
         let digit = parseInt(cardNumber[i], 10);
         if (shouldDouble) {
@@ -212,23 +211,18 @@ const isValidCardNumber = (cardNumber: string): boolean => {
     }
     return sum % 10 === 0;
 };
-
 const isValidExpiryDate = (expiryDate: string): boolean => {
     if (!/^\d{2}\/\d{2}$/.test(expiryDate)) return false; // MM/YY format
     const [month, year] = expiryDate.split('/').map(Number);
     if (month < 1 || month > 12) return false;
-
     const now = new Date();
     const currentYear = now.getFullYear() % 100; // Last two digits of the year
     const currentMonth = now.getMonth() + 1;
-
     return year > currentYear || (year === currentYear && month >= currentMonth);
 };
-
 const isValidCVV = (cvv: string): boolean => {
     return /^\d{3,4}$/.test(cvv); // 3 or 4 digits
 };
-
 const canPay = () => {
     return !!(
         cartItems.value.length &&
