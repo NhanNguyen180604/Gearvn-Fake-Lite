@@ -68,21 +68,26 @@
                         <input type="text" v-else v-model="paymentInfo.id" required />
                     </div>
                 </SignedIn>
-                <div class="form-group">
-                    <label>Card Number</label>
-                    <input type="text" v-model="paymentInfo.cardNumber" required />
-                </div>
+                <SignedOut>
+                    <div class="form-group">
+                        <label>Card Number</label>
+                        <input type="text" v-model="paymentInfo.cardNumber" required />
+                    </div>
+                </SignedOut>
+
             </div>
-            <div class="form-row">
-                <div class="form-group">
-                    <label>CVV</label>
-                    <input type="text" v-model="paymentInfo.cvv" required />
+            <SignedOut>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>CVV</label>
+                        <input type="text" v-model="paymentInfo.cvv" required />
+                    </div>
+                    <div class="form-group">
+                        <label>Expiry Date</label>
+                        <input type="text" v-model="paymentInfo.expiryDate" required />
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label>Expiry Date</label>
-                    <input type="text" v-model="paymentInfo.expiryDate" required />
-                </div>
-            </div>
+            </SignedOut>
 
             <button type="submit" class="submit-btn" @click="handlePayment" :disabled="!canPay()">Xác nhận thanh
                 toán</button>
@@ -91,7 +96,7 @@
 </template>
 
 <script setup lang="ts">
-import { useUser, SignedIn } from '@clerk/vue';
+import { useUser, SignedIn, SignedOut } from '@clerk/vue';
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { getCart } from '../services/cartService';
