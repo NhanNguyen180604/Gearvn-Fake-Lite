@@ -14,11 +14,6 @@ const postDeposit = asyncHandler(async (req, res) => {
                 ccv,
                 amount: parseInt(amount),
             },
-            {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                }
-            }
         );
         res.status(response.status).json(response.data);
     }
@@ -34,15 +29,7 @@ const postDeposit = asyncHandler(async (req, res) => {
 const getBalance = asyncHandler(async (req, res) => {
     try {
         const { id } = req.params;
-        const token = await req.auth.getToken();
-        const response = await axiosInstance.get(`/api/payment/${id}`,
-            {},
-            {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                }
-            }
-        );
+        const response = await axiosInstance.get(`/api/payment/${id}`);
         res.status(response.status).json(response.data);
     }
     catch (error) {

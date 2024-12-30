@@ -25,6 +25,12 @@ const getBalance = asyncHandler(async (req, res) => {
 const deposit = asyncHandler(async (req, res) => {
     const id = req.params.id;
     const { cardNumber, cvv, expiryDate, amount } = req.body;
+    // Verify card info here, assume that it succeed
+    // if (!isValidCardNumber(cardNumber) || !isValidCVV(cvv) || !isValidExpiryDate(expiryDate)) {
+    //     res.status(400);
+    //     throw new Error("Invalid card info");
+    // }
+
     await mongoose.connection.transaction(async (session) => {
         const wallet = await Wallet.findById(id, null, { session });
         if (!wallet) {

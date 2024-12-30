@@ -40,11 +40,6 @@ const userPay = asyncHandler(async (req, res) => {
                 cvv,
                 expiryDate,
             },
-            {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                }
-            }
         );
 
         if (response.status === 200 && response.data?.id) {
