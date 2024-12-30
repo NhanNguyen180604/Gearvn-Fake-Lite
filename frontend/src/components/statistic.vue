@@ -7,11 +7,11 @@
     <div class="filters my-3 d-flex justify-content-center gap-3">
       <div>
         <label for="fromDate">Từ ngày:</label>
-        <input type="date" id="fromDate" v-model="filters.fromDate" class="form-control" />
+        <input type="text" id="fromDate" v-model="filters.fromDate" class="form-control" />
       </div>
       <div>
         <label for="toDate">Đến ngày:</label>
-        <input type="date" id="toDate" v-model="filters.toDate" class="form-control" />
+        <input type="text" id="toDate" v-model="filters.toDate" class="form-control" />
       </div>
       <button class="btn btn-primary mt-4" @click="fetchRevenueData">Xem thống kê</button>
     </div>
@@ -119,9 +119,8 @@ const fetchRevenueData = async () => {
 
 // Set default values for fromDate and toDate when the component mounts
 onMounted(() => {
-  const currentDate = new Date().toISOString().split('T')[0];
-  filters.value.fromDate = "2024-12-01"; // Set a default 'from date'
-  filters.value.toDate = currentDate; // Set default 'to date' to today
+  filters.value.fromDate = "23/12/2024"; // Set a default 'from date'
+  filters.value.toDate = "24/12/2024"; // Set default 'to date' to today
   fetchRevenueData();
 });
 </script>
