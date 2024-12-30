@@ -32,7 +32,7 @@ const userPay = asyncHandler(async (req, res) => {
             throw new Error("Product empty");
         }
 
-        const payload = { amount: totalPrice };
+        const payload = { amount: totalPrice, cardNumber, cvv, expiryDate };
         const timestamp = Date.now();
         const response = await axiosInstance.post(`/api/payment/${req.params.id}/withdraw`,
             payload,

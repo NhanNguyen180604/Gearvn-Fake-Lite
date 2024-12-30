@@ -21,7 +21,7 @@ const balance = ref(0);
 const token = toRef(prop.token);
 const depositInfo = ref({
     cardNumber: '',
-    ccv: '',
+    cvv: '',
     expiryDate: '',
     amount: 0,
     success: true,
@@ -38,7 +38,7 @@ const submit = async () => {
     if (user.value) {
         const formData = new FormData();
         formData.append('cardNumber', depositInfo.value.cardNumber);
-        formData.append('ccv', depositInfo.value.ccv);
+        formData.append('cvv', depositInfo.value.cvv);
         formData.append('expiryDate', depositInfo.value.expiryDate);
         formData.append('amount', depositInfo.value.amount.toString());
 
@@ -100,6 +100,40 @@ const formatDate = (date: any) => {
     return (new Date(date)).toLocaleDateString('en-GB');
 }
 
+const isValidCardNumber = (cardNumber: string): boolean => {
+    if (!/^\d{13,19}$/.test(cardNumber)) return false; // 13-19 digits
+    let sum = 0;
+    let shouldDouble = false;
+    for (let i = cardNumber.length - 1; i >= 0; i--) {
+        let digit = parseInt(cardNumber[i], 10);
+        if (shouldDouble) {
+            digit *= 2;
+            if (digit > 9) digit -= 9;
+        }
+        sum += digit;
+        shouldDouble = !shouldDouble;
+    }
+    return sum % 10 === 0;
+};
+const isValidExpiryDate = (expiryDate: string): boolean => {
+    if (!/^\d{2}\/\d{2}$/.test(expiryDate)) return false; // MM/YY format
+    const [month, year] = expiryDate.split('/').map(Number);
+    if (month < 1 || month > 12) return false;
+    const now = new Date();
+    const currentYear = now.getFullYear() % 100; // Last two digits of the year
+    const currentMonth = now.getMonth() + 1;
+    return year > currentYear || (year === currentYear && month >= currentMonth);
+};
+const isValidCVV = (cvv: string): boolean => {
+    return /^\d{3,4}$/.test(cvv); // 3 or 4 digits
+};
+
+const canPay = () => {
+    return !!(
+        isValidCVV(depositInfo.value.cvv) && isValidCardNumber(depositInfo.value.cardNumber) && isValidExpiryDate(depositInfo.value.expiryDate)
+        && depositInfo.value.amount > 0
+    );
+};
 </script>
 
 <template>
@@ -138,7 +172,7 @@ const formatDate = (date: any) => {
                         v-model="depositInfo.cardNumber">
 
                     <label for="cvv">CVV</label>
-                    <input type="text" id="cvv" placeholder="Số CVV" required v-model="depositInfo.ccv">
+                    <input type="text" id="cvv" placeholder="Số CVV" required v-model="depositInfo.cvv">
 
                     <label for="expiryDate">Ngày hết hạn</label>
                     <input type="text" id="expiryDate" placeholder="Ngày hết hạn của thẻ" required
@@ -150,7 +184,7 @@ const formatDate = (date: any) => {
 
                     <div v-if="!depositInfo.success" class="failMessage">Nạp tiền thất bại, lý do {{
                         depositInfo.failureMessage }}</div>
-                    <button @click.prevent="submit">Nạp tiền</button>
+                    <button @click.prevent="submit" :disabled="!canPay()">Nạp tiền</button>
                 </form>
             </div>
         </div>
