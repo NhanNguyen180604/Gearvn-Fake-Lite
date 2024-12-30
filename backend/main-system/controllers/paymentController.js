@@ -11,7 +11,7 @@ const { clearCartHelper } = require('../controllers/cartController');
  */
 const userPay = asyncHandler(async (req, res) => {
     try {
-        const { fullName, phoneNumber, city, district, street, cardNumber, ccv, expiryDate } = req.body;
+        const { fullName, phoneNumber, city, district, street, cardNumber, cvv, expiryDate } = req.body;
         const token = await req.auth.getToken();
 
         const cart = await Cart.findOne({ user: req.params.id });
@@ -37,7 +37,7 @@ const userPay = asyncHandler(async (req, res) => {
             {
                 amount: totalPrice,
                 cardNumber,
-                ccv,
+                cvv,
                 expiryDate,
             },
             {
@@ -81,7 +81,7 @@ const userPay = asyncHandler(async (req, res) => {
  */
 const guestPay = asyncHandler(async (req, res) => {
     try {
-        const { fullName, phoneNumber, city, district, street, cardNumber, ccv, expiryDate } = req.body;
+        const { fullName, phoneNumber, city, district, street, cardNumber, cvv, expiryDate } = req.body;
         if (!req.session.guestCart || !req.session.guestCart.length) {
             res.status(400);
             throw new Error("Empty cart");
@@ -102,7 +102,7 @@ const guestPay = asyncHandler(async (req, res) => {
         const response = await axiosInstance.post(`/api/payment/guest/withdraw`, {
             amount: totalPrice,
             cardNumber,
-            ccv,
+            cvv,
             expiryDate,
         });
 

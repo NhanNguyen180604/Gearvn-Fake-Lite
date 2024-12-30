@@ -29,7 +29,7 @@ const depositInfo = ref({
 });
 
 const page = ref(1);
-const perPage = 1;
+const perPage = 5;
 const totalPages = ref(100);
 const total = ref(1000);
 const orders = ref<Order[]>([]);
@@ -83,7 +83,6 @@ watch(page, async () => {
 
 const fetchOrders = async (local_page: number, per_page: number) => {
     const orderResponse = await getMyOrders(local_page, per_page, token.value);
-    console.log(orderResponse);
     if (orderResponse) {
         totalPages.value = orderResponse.total_pages;
         total.value = orderResponse.total;
